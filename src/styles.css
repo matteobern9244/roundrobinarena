@@ -147,6 +147,37 @@
     color: var(--color-foreground);
     font-family: var(--font-mono);
     -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+  }
+
+  /* Su iOS gli input <16px causano zoom automatico al focus → forziamo 16px */
+  @media (max-width: 640px) {
+    input[type="text"],
+    input[type="number"],
+    input:not([type]) {
+      font-size: 16px;
+    }
+  }
+}
+
+/* ───────── Utility custom ───────── */
+
+@utility safe-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+@utility safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+@utility safe-x {
+  padding-left: max(env(safe-area-inset-left), 0px);
+  padding-right: max(env(safe-area-inset-right), 0px);
+}
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -182,7 +213,11 @@
   }
 
   .nav-tab {
-    padding: 10px 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px; /* touch target accessibile */
+    padding: 0 14px;
     background: transparent;
     border: none;
     border-bottom: 3px solid transparent;
@@ -193,6 +228,9 @@
     letter-spacing: 2px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .nav-tab:hover {
@@ -237,21 +275,30 @@
 
   .match-card {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    gap: 10px;
-    padding: 14px 14px;
+    gap: 8px;
+    padding: 12px 12px;
     border-bottom: 1px solid var(--color-border);
     background: var(--color-card);
     transition: background 0.2s;
+  }
+
+  @media (min-width: 640px) {
+    .match-card {
+      gap: 14px;
+      padding: 14px 18px;
+    }
   }
 
   .match-card:last-child {
     border-bottom: none;
   }
 
-  .match-card:hover {
-    background: var(--color-surface-1);
+  @media (hover: hover) {
+    .match-card:hover {
+      background: var(--color-surface-1);
+    }
   }
 
   .match-card.is-done {
@@ -261,7 +308,7 @@
   .player-side {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
   }
 
@@ -280,15 +327,23 @@
   .player-name {
     font-weight: 800;
     font-size: 12px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
+  }
+
+  .score-zone {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
   .score-input {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     text-align: center;
     background: var(--color-surface-2);
     border: 2px solid var(--color-border);
@@ -299,6 +354,10 @@
     font-weight: 900;
     outline: none;
     transition: all 0.2s;
+    /* iOS: niente zoom al focus, niente highlight blu */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .score-input:focus {
@@ -323,14 +382,22 @@
 
   .champion-banner {
     text-align: center;
-    padding: 16px 24px;
+    padding: 14px 18px;
     background: color-mix(in oklab, var(--neon-gold) 10%, var(--color-card));
     border: 2px solid var(--color-neon-gold);
     border-radius: var(--radius-xl);
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 900;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     animation: champion-pulse 2s infinite;
+  }
+
+  @media (min-width: 640px) {
+    .champion-banner {
+      padding: 16px 24px;
+      font-size: 15px;
+      letter-spacing: 2px;
+    }
   }
 
   @keyframes champion-pulse {
@@ -343,5 +410,55 @@
       box-shadow: 0 0 32px
         color-mix(in oklab, var(--neon-gold) 55%, transparent);
     }
+  }
+
+  /* Toast "Salvato" — stato fluttuante in basso, fuori dal flusso */
+  .saved-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    transform: translateX(-50%);
+    z-index: 200;
+    padding: 8px 14px;
+    background: color-mix(in oklab, var(--neon-lime) 18%, var(--color-card));
+    border: 1px solid var(--color-neon-lime);
+    border-radius: 999px;
+    color: var(--color-neon-lime);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 20px
+      color-mix(in oklab, var(--neon-lime) 30%, transparent);
+    animation: toast-in 0.25s ease-out;
+    pointer-events: none;
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 12px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+}
+
+/* ───────── Standalone (PWA installata) ───────── */
+@media all and (display-mode: standalone) {
+  /* Quando l'app gira come PWA installata: niente selezione testo accidentale,
+     supporto completo safe-area, no callout iOS. */
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  /* Ma input/textarea devono restare selezionabili */
+  input,
+  textarea {
+    -webkit-user-select: text;
+    user-select: text;
   }
 }

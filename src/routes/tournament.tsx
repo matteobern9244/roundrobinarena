@@ -70,19 +70,18 @@ function TournamentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground safe-x">
       <Header
         playersCount={players.length}
         done={done}
         total={total}
         pct={pct}
-        savedFlash={savedFlash}
         tab={tab}
         onTab={setTab}
         onReset={handleReset}
       />
 
-      <main className="mx-auto max-w-3xl px-4 py-6">
+      <main className="mx-auto max-w-3xl px-3 py-5 sm:px-4 sm:py-6 safe-bottom">
         {tab === "matches" && (
           <MatchesView
             rounds={liveRounds}
@@ -108,6 +107,12 @@ function TournamentPage() {
           />
         )}
       </main>
+
+      {savedFlash && (
+        <div className="saved-toast" role="status" aria-live="polite">
+          ✓ Salvato
+        </div>
+      )}
     </div>
   );
 }
@@ -119,7 +124,6 @@ function Header({
   done,
   total,
   pct,
-  savedFlash,
   tab,
   onTab,
   onReset,
@@ -128,7 +132,6 @@ function Header({
   done: number;
   total: number;
   pct: number;
-  savedFlash: boolean;
   tab: Tab;
   onTab: (t: Tab) => void;
   onReset: () => void;
@@ -141,53 +144,59 @@ function Header({
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-border px-4 pt-4"
+      className="sticky top-0 z-50 border-b border-border safe-top"
       style={{ background: "var(--gradient-header)" }}
     >
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-3 flex flex-wrap items-center gap-3">
-          <span className="neon-logo text-3xl" aria-hidden>
+      <div className="mx-auto max-w-3xl px-3 pt-3 sm:px-4 sm:pt-4">
+        {/* Riga 1: logo + titolo + reset compatto a destra */}
+        <div className="mb-2 flex items-center gap-3">
+          <span className="neon-logo text-2xl sm:text-3xl" aria-hidden>
             🏓
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="neon-title text-lg font-black sm:text-xl">PING PONG</h1>
-            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-              {playersCount} Giocatori · All vs All · A {WIN_SCORE}
+            <h1 className="neon-title text-base font-black leading-none sm:text-xl">
+              PING PONG
+            </h1>
+            <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:tracking-[0.25em]">
+              {playersCount} Giocatori · A {WIN_SCORE}
             </p>
           </div>
-          <div className="ml-auto text-right">
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              {done}/{total} · {pct}%
-            </div>
-            <div className="progress-bar w-32 sm:w-40">
-              <div className="progress-fill" style={{ width: `${pct}%` }} />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => onTab(t.id)}
-              className={`nav-tab ${tab === t.id ? "active" : ""}`}
-            >
-              {t.label}
-            </button>
-          ))}
           <button
             type="button"
             onClick={onReset}
-            className="ml-auto rounded-md border border-border bg-transparent px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+            aria-label="Reset torneo"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
           >
-            ↺ Reset
-          </button>
-          {savedFlash && (
-            <span className="text-[10px] font-bold uppercase tracking-widest text-neon-lime">
-              ✓ Salvato
+            <span aria-hidden className="text-base">
+              ↺
             </span>
-          )}
+          </button>
+        </div>
+
+        {/* Riga 2: barra di progresso a tutta larghezza */}
+        <div className="mb-2 flex items-center gap-2">
+          <div className="progress-bar flex-1">
+            <div className="progress-fill" style={{ width: `${pct}%` }} />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground tabular-nums">
+            {done}/{total} · {pct}%
+          </span>
+        </div>
+
+        {/* Riga 3: tab scrollabili orizzontalmente */}
+        <div className="-mx-3 sm:-mx-4">
+          <div className="scrollbar-hidden flex items-center gap-1 overflow-x-auto px-3 sm:px-4">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => onTab(t.id)}
+                className={`nav-tab ${tab === t.id ? "active" : ""}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </header>
@@ -280,28 +289,26 @@ function MatchRow({
       </div>
 
       {/* Score */}
-      <div className="flex items-center gap-2">
+      <div className="score-zone">
         <input
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           aria-label={`Punteggio ${match.p1}`}
           value={match.score1}
           onChange={(e) => onScoreChange(match, "score1", e.target.value)}
-          className={`score-input ${
-            winner === match.p2 ? "is-loser" : ""
-          }`}
+          className={`score-input ${winner === match.p2 ? "is-loser" : ""}`}
           style={inputStyle(winner === match.p1, c1)}
         />
         <span className="text-xl font-black text-muted-foreground">:</span>
         <input
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           aria-label={`Punteggio ${match.p2}`}
           value={match.score2}
           onChange={(e) => onScoreChange(match, "score2", e.target.value)}
-          className={`score-input ${
-            winner === match.p1 ? "is-loser" : ""
-          }`}
+          className={`score-input ${winner === match.p1 ? "is-loser" : ""}`}
           style={inputStyle(winner === match.p2, c2)}
         />
       </div>
@@ -341,7 +348,7 @@ function StandingsView({
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card sm:block">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr>
