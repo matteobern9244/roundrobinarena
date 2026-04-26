@@ -339,7 +339,7 @@ function StandingsView({
   allDone: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       {allDone && standings[0] && (
         <div className="champion-banner">
           🎉 Campione:{" "}
@@ -350,14 +350,17 @@ function StandingsView({
         </div>
       )}
 
-      <div className="hidden overflow-x-auto rounded-2xl border border-border bg-card sm:block">
-        <table className="w-full border-collapse text-sm">
+      {/* ─── TABELLA RIASSUNTIVA — sempre visibile, anche su mobile ─── */}
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+        <table className="w-full border-collapse">
           <thead>
             <tr>
-              {["#", "Giocatore", "G", "V", "P", "PF", "PS", "+/−"].map((h) => (
+              {["#", "Giocatore", "G", "V", "P", "PF", "PS", "+/−"].map((h, i) => (
                 <th
                   key={h}
-                  className="border-b border-border px-3 py-3 text-[9px] font-bold uppercase tracking-widest text-muted-foreground"
+                  className={`border-b border-border py-2.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:text-[10px] ${
+                    i === 1 ? "px-2 text-left sm:px-3" : "px-1.5 text-center sm:px-3"
+                  }`}
                 >
                   {h}
                 </th>
@@ -375,24 +378,37 @@ function StandingsView({
                     i === 0 ? "is-top" : ""
                   }`}
                 >
-                  <td className="px-3 py-3 text-center text-base font-black">
+                  <td className="px-1.5 py-2.5 text-center text-sm font-black sm:px-3 sm:py-3 sm:text-base">
                     {MEDALS[i] ?? i + 1}
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-2 py-2.5 sm:px-3 sm:py-3">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <span className="player-dot" style={{ backgroundColor: color }} />
-                      <span className="font-bold" style={{ color }}>
+                      <span
+                        className="truncate text-xs font-bold sm:text-sm"
+                        style={{ color }}
+                      >
                         {s.player}
                       </span>
                     </div>
                   </td>
-                  <td className="px-3 py-3 text-center">{s.played}</td>
-                  <td className="px-3 py-3 text-center font-bold text-neon-lime">{s.wins}</td>
-                  <td className="px-3 py-3 text-center text-muted-foreground">{s.losses}</td>
-                  <td className="px-3 py-3 text-center">{s.pf}</td>
-                  <td className="px-3 py-3 text-center">{s.pa}</td>
+                  <td className="px-1.5 py-2.5 text-center text-xs tabular-nums sm:px-3 sm:py-3 sm:text-sm">
+                    {s.played}
+                  </td>
+                  <td className="px-1.5 py-2.5 text-center text-xs font-bold tabular-nums text-neon-lime sm:px-3 sm:py-3 sm:text-sm">
+                    {s.wins}
+                  </td>
+                  <td className="px-1.5 py-2.5 text-center text-xs tabular-nums text-muted-foreground sm:px-3 sm:py-3 sm:text-sm">
+                    {s.losses}
+                  </td>
+                  <td className="px-1.5 py-2.5 text-center text-xs tabular-nums sm:px-3 sm:py-3 sm:text-sm">
+                    {s.pf}
+                  </td>
+                  <td className="px-1.5 py-2.5 text-center text-xs tabular-nums sm:px-3 sm:py-3 sm:text-sm">
+                    {s.pa}
+                  </td>
                   <td
-                    className="px-3 py-3 text-center font-bold"
+                    className="px-1.5 py-2.5 text-center text-xs font-bold tabular-nums sm:px-3 sm:py-3 sm:text-sm"
                     style={{ color: diff >= 0 ? "var(--neon-lime)" : "var(--neon-red)" }}
                   >
                     {diff > 0 ? "+" : ""}
@@ -405,23 +421,35 @@ function StandingsView({
         </table>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* ─── GRIGLIA CARD GIOCATORE — 2 colonne sempre ─── */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
         {standings.map((s, i) => {
           const color = colorFor(players, s.player);
           const winRate = s.played > 0 ? Math.round((s.wins / s.played) * 100) : 0;
+          const isTop = i === 0;
           return (
             <div
               key={s.player}
-              className="rounded-2xl border bg-card p-4 transition-transform hover:-translate-y-1"
-              style={{ borderColor: i === 0 ? "var(--neon-gold)" : "var(--color-border)" }}
+              className="rounded-2xl border bg-card p-3 transition-transform hover:-translate-y-0.5 sm:p-4"
+              style={{
+                borderColor: isTop ? "var(--neon-gold)" : color,
+                boxShadow: isTop
+                  ? "0 0 14px color-mix(in oklab, var(--neon-gold) 25%, transparent)"
+                  : undefined,
+              }}
             >
-              <div className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                {MEDALS[i] ?? `#${i + 1}`}
+              <div className="mb-1.5 text-center text-base font-black sm:mb-2 sm:text-lg">
+                {MEDALS[i] ?? (
+                  <span className="text-muted-foreground">#{i + 1}</span>
+                )}
               </div>
-              <div className="mb-3 text-lg font-black" style={{ color }}>
+              <div
+                className="mb-2 truncate text-center text-sm font-black sm:mb-3 sm:text-base"
+                style={{ color }}
+              >
                 {s.player}
               </div>
-              <div className="mb-3 grid grid-cols-3 gap-2 text-center">
+              <div className="mb-2 grid grid-cols-3 gap-1 text-center sm:mb-3 sm:gap-2">
                 <MiniStat color="var(--neon-lime)" value={s.wins} label="Vinte" />
                 <MiniStat color="var(--neon-red)" value={s.losses} label="Perse" />
                 <MiniStat color="var(--neon-cyan)" value={s.pf} label="PF" />
@@ -435,7 +463,10 @@ function StandingsView({
                   }}
                 />
               </div>
-              <div className="text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <div
+                className="text-center text-[9px] font-bold uppercase tracking-widest sm:text-[10px]"
+                style={{ color }}
+              >
                 {winRate}% win rate
               </div>
             </div>
@@ -449,10 +480,10 @@ function StandingsView({
 function MiniStat({ color, value, label }: { color: string; value: number; label: string }) {
   return (
     <div>
-      <div className="text-base font-black" style={{ color }}>
+      <div className="text-sm font-black tabular-nums sm:text-base" style={{ color }}>
         {value}
       </div>
-      <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground sm:text-[9px]">
         {label}
       </div>
     </div>
