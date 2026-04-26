@@ -62,8 +62,20 @@ export type UseThemeResult = {
  * inline in __root.tsx evita il flash visivo).
  */
 export function useTheme(): UseThemeResult {
-  const [mode, setModeState] = useState<ThemeMode>(() => readMode());
-  const [theme, setTheme] = useState<Theme>(() => resolveTheme(readMode()));
+  // SSR-safe: parto sempre dai default per evitare hydration mismatch.
+  // I valori reali vengono sincronizzati nel primo useEffect lato client.
+  const [mode, setModeState] = useState<ThemeMode>("system");
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  // Sync iniziale lato client: legge localStorage + sistema dopo l'idratazione.
+  useEffect(() => {
+    if (!isBrowser) return;
+    const m = readMode();
+    setModeState(m);
+    const next = resolveTheme(m);
+    setTheme(next);
+    applyTheme(next);
+  }, []);
 
   // Applica il tema risolto su DOM ad ogni cambio di mode (o di sistema).
   useEffect(() => {
