@@ -382,14 +382,22 @@
 
   .champion-banner {
     text-align: center;
-    padding: 16px 24px;
+    padding: 14px 18px;
     background: color-mix(in oklab, var(--neon-gold) 10%, var(--color-card));
     border: 2px solid var(--color-neon-gold);
     border-radius: var(--radius-xl);
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 900;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     animation: champion-pulse 2s infinite;
+  }
+
+  @media (min-width: 640px) {
+    .champion-banner {
+      padding: 16px 24px;
+      font-size: 15px;
+      letter-spacing: 2px;
+    }
   }
 
   @keyframes champion-pulse {
@@ -402,5 +410,55 @@
       box-shadow: 0 0 32px
         color-mix(in oklab, var(--neon-gold) 55%, transparent);
     }
+  }
+
+  /* Toast "Salvato" — stato fluttuante in basso, fuori dal flusso */
+  .saved-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    transform: translateX(-50%);
+    z-index: 200;
+    padding: 8px 14px;
+    background: color-mix(in oklab, var(--neon-lime) 18%, var(--color-card));
+    border: 1px solid var(--color-neon-lime);
+    border-radius: 999px;
+    color: var(--color-neon-lime);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 20px
+      color-mix(in oklab, var(--neon-lime) 30%, transparent);
+    animation: toast-in 0.25s ease-out;
+    pointer-events: none;
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 12px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+}
+
+/* ───────── Standalone (PWA installata) ───────── */
+@media all and (display-mode: standalone) {
+  /* Quando l'app gira come PWA installata: niente selezione testo accidentale,
+     supporto completo safe-area, no callout iOS. */
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  /* Ma input/textarea devono restare selezionabili */
+  input,
+  textarea {
+    -webkit-user-select: text;
+    user-select: text;
   }
 }
