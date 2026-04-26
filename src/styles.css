@@ -55,10 +55,89 @@
     Menlo, Monaco, Consolas, monospace;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+ * TEMA LIGHT (default — :root)
+ * Look "light arcade": sfondo chiaro caldo + accenti neon vividi.
+ * Il tema dark sotto sovrascrive tutti i token semantici.
+ * ───────────────────────────────────────────────────────────────── */
 :root {
+  color-scheme: light dark;
   --radius: 0.75rem;
 
-  /* Base — dark by default per il look arcade */
+  /* Base — light arcade */
+  --background: oklch(0.985 0.005 250);
+  --foreground: oklch(0.18 0.02 270);
+
+  --surface-1: oklch(0.96 0.008 250);
+  --surface-2: oklch(0.93 0.01 250);
+  --surface-3: oklch(0.89 0.012 250);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 270);
+
+  /* Primary cyan scurito per leggibilità su sfondo chiaro */
+  --primary: oklch(0.55 0.16 220);
+  --primary-foreground: oklch(0.98 0.005 250);
+
+  --secondary: oklch(0.93 0.01 250);
+  --secondary-foreground: oklch(0.18 0.02 270);
+
+  --muted: oklch(0.93 0.01 250);
+  --muted-foreground: oklch(0.45 0.02 260);
+
+  --accent: oklch(0.93 0.01 250);
+  --accent-foreground: oklch(0.18 0.02 270);
+
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0.005 250);
+
+  --border: oklch(0.85 0.012 250);
+  --input: oklch(0.85 0.012 250);
+  --ring: oklch(0.55 0.16 220);
+
+  /* Palette neon — versione light: stessi hue, scuriti per restare vividi */
+  --neon-cyan: oklch(0.62 0.18 220);
+  --neon-lime: oklch(0.68 0.22 130);
+  --neon-gold: oklch(0.72 0.17 90);
+  --neon-red: oklch(0.58 0.22 25);
+  --neon-magenta: oklch(0.55 0.25 350);
+
+  /* Gradienti riutilizzabili */
+  --gradient-progress: linear-gradient(
+    90deg,
+    var(--neon-cyan),
+    var(--neon-lime)
+  );
+  --gradient-header: linear-gradient(
+    180deg,
+    var(--surface-1),
+    var(--background)
+  );
+
+  /* Glow ridotti su light per non lavare gli accenti */
+  --glow-cyan: 0 0 16px color-mix(in oklab, var(--neon-cyan) 28%, transparent);
+  --glow-gold: 0 0 18px color-mix(in oklab, var(--neon-gold) 32%, transparent);
+
+  /* Intensità glow (consumata da .neon-title e .neon-logo) */
+  --neon-title-shadow:
+    0 0 10px color-mix(in oklab, var(--neon-cyan) 35%, transparent);
+  --neon-logo-shadow:
+    0 0 10px color-mix(in oklab, var(--neon-cyan) 30%, transparent);
+
+  /* Mix accent per stati "completato" / "top" — più alto su light */
+  --done-mix: 12%;
+  --top-mix: 18%;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+ * TEMA DARK
+ * ───────────────────────────────────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+
+  /* Base — dark arcade */
   --background: oklch(0.13 0.02 270);
   --foreground: oklch(0.95 0.01 250);
 
@@ -71,7 +150,6 @@
   --popover: oklch(0.16 0.02 270);
   --popover-foreground: oklch(0.95 0.01 250);
 
-  /* Primary = ciano neon */
   --primary: oklch(0.82 0.16 220);
   --primary-foreground: oklch(0.13 0.02 270);
 
@@ -91,47 +169,25 @@
   --input: oklch(0.26 0.03 270);
   --ring: oklch(0.82 0.16 220);
 
-  /* Palette neon (per gradienti, glow, accenti) */
+  /* Neon più chiari/saturi su sfondo scuro */
   --neon-cyan: oklch(0.82 0.16 220);
   --neon-lime: oklch(0.88 0.22 130);
   --neon-gold: oklch(0.85 0.17 90);
   --neon-red: oklch(0.7 0.22 25);
   --neon-magenta: oklch(0.7 0.25 350);
 
-  /* Gradienti riutilizzabili */
-  --gradient-progress: linear-gradient(
-    90deg,
-    var(--neon-cyan),
-    var(--neon-lime)
-  );
-  --gradient-header: linear-gradient(180deg, var(--surface-1), var(--background));
-
-  /* Ombre/glow */
+  /* Glow pieni su dark */
   --glow-cyan: 0 0 20px color-mix(in oklab, var(--neon-cyan) 40%, transparent);
   --glow-gold: 0 0 24px color-mix(in oklab, var(--neon-gold) 50%, transparent);
-}
 
-.dark {
-  /* Stesso schema — l'app è dark-first */
-  --background: oklch(0.13 0.02 270);
-  --foreground: oklch(0.95 0.01 250);
-  --card: oklch(0.16 0.02 270);
-  --card-foreground: oklch(0.95 0.01 250);
-  --popover: oklch(0.16 0.02 270);
-  --popover-foreground: oklch(0.95 0.01 250);
-  --primary: oklch(0.82 0.16 220);
-  --primary-foreground: oklch(0.13 0.02 270);
-  --secondary: oklch(0.22 0.03 270);
-  --secondary-foreground: oklch(0.95 0.01 250);
-  --muted: oklch(0.22 0.03 270);
-  --muted-foreground: oklch(0.62 0.03 260);
-  --accent: oklch(0.22 0.03 270);
-  --accent-foreground: oklch(0.95 0.01 250);
-  --destructive: oklch(0.65 0.22 25);
-  --destructive-foreground: oklch(0.98 0.01 250);
-  --border: oklch(0.26 0.03 270);
-  --input: oklch(0.26 0.03 270);
-  --ring: oklch(0.82 0.16 220);
+  --neon-title-shadow:
+    0 0 20px color-mix(in oklab, var(--neon-cyan) 80%, transparent),
+    0 0 40px color-mix(in oklab, var(--neon-cyan) 30%, transparent);
+  --neon-logo-shadow:
+    0 0 14px color-mix(in oklab, var(--neon-cyan) 60%, transparent);
+
+  --done-mix: 4%;
+  --top-mix: 12%;
 }
 
 @layer base {
