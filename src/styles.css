@@ -243,15 +243,11 @@
   .neon-title {
     color: var(--color-foreground);
     letter-spacing: 0.4em;
-    text-shadow:
-      0 0 20px color-mix(in oklab, var(--neon-cyan) 80%, transparent),
-      0 0 40px color-mix(in oklab, var(--neon-cyan) 30%, transparent);
+    text-shadow: var(--neon-title-shadow);
   }
 
   .neon-logo {
-    filter: drop-shadow(
-      0 0 14px color-mix(in oklab, var(--neon-cyan) 60%, transparent)
-    );
+    filter: drop-shadow(var(--neon-logo-shadow));
   }
 
   .progress-bar {
