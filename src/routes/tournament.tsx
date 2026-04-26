@@ -161,6 +161,7 @@ function Header({
               {playersCount} Giocatori · A {WIN_SCORE}
             </p>
           </div>
+          <ThemeToggle />
           <button
             type="button"
             onClick={onReset}
