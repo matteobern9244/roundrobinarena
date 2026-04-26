@@ -147,6 +147,37 @@
     color: var(--color-foreground);
     font-family: var(--font-mono);
     -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+  }
+
+  /* Su iOS gli input <16px causano zoom automatico al focus → forziamo 16px */
+  @media (max-width: 640px) {
+    input[type="text"],
+    input[type="number"],
+    input:not([type]) {
+      font-size: 16px;
+    }
+  }
+}
+
+/* ───────── Utility custom ───────── */
+
+@utility safe-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+@utility safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+@utility safe-x {
+  padding-left: max(env(safe-area-inset-left), 0px);
+  padding-right: max(env(safe-area-inset-right), 0px);
+}
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
