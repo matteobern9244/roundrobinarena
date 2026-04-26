@@ -1,104 +1,190 @@
-# 📱 Mobile-first + PWA installabile
+## Obiettivo
 
-Obiettivo: l'app deve essere perfetta su mobile (uso primario al 99%), restare leggibile/usabile anche su desktop, ed essere **installabile come PWA** con icone, splash e display standalone — esperienza identica al sito.
-
-Tieni presente che la piattaforma usa un'iframe di preview che non è compatibile con i service worker (cache stantia, navigazione interrotta). Per questo motivo NON useremo `vite-plugin-pwa` né service worker. Per essere "installabile" e indistinguibile dall'app web basta un **manifest.json** ben fatto + meta tag iOS — questa è esattamente la raccomandazione ufficiale quando non serve l'offline. L'esperienza standalone (no barra browser, icona in home, splash) sarà identica al 100% all'app aperta nel browser.
-
-> Se in futuro vorrai anche **funzionamento offline** (service worker + cache), sarà un secondo step opzionale, da abilitare solo dopo il deploy perché in editor preview rompe il refresh live.
-
----
-
-## 1. Responsive mobile-first — refactor mirato
-
-Ho controllato `tournament.tsx` e `index.tsx`: il grosso è già responsive, ma ci sono punti da rifinire per evitare overflow orizzontale su viewport stretti (≤375px) e migliorare l'ergonomia touch.
-
-### Header torneo (`Header` in `src/routes/tournament.tsx`)
-- Riorganizzazione in 2 righe su mobile: riga 1 = logo + titolo + barra progresso compatta sotto al titolo; riga 2 = tab scorrevoli orizzontalmente + reset.
-- Tab bar: aggiungere `overflow-x-auto` con `scrollbar-hidden`, gap ridotto, snap orizzontale, tab più tappabili (min height 44px per accessibilità touch iOS).
-- Spostare il pulsante **↺ Reset** in un menu/icona compatta (oggi su 360px va in seconda riga e taglia il layout).
-- Indicatore "✓ Salvato" assoluto/toast in basso invece che inline (su mobile si sovrappone).
-
-### Tab Partite (`MatchesView` / `MatchRow`)
-- La grid `1fr auto 1fr` su 360px stringe i nomi. Migliorare: nomi giocatori che vanno a capo o si troncano gradevolmente; assicurare che la zona score (input+`:`+input) non si comprima mai (`flex-shrink-0`).
-- Input punteggio: ingrandirli leggermente (48×48 su mobile) e impostare `inputMode="numeric"` + `pattern="[0-9]*"` per tastierino numerico iOS (verificare che ci sia già).
-- Padding card ridotto su mobile (12px laterali invece di 14px) per recuperare spazio.
-
-### Tab Classifica (`StandingsView`)
-- Tabella oggi ha `overflow-x-auto`, OK ma su mobile l'orizzontalmente scrollabile non è ottimale. Soluzione: **due viste**:
-  - Mobile (<640px): solo le card-giocatore (già presenti), senza tabella → meno scroll.
-  - Desktop (≥640px): tabella completa + opzionalmente le card.
-- Banner "Campione": ridurre tracking e font-size su mobile per non andare a capo male.
-
-### Tab Giocatori (`PlayersTab`) e Setup (`index.tsx`)
-- Già ben fatti. Verificare che gli input occupino tutta la larghezza e che il tasto rimuovi sia abbastanza grande (almeno 36×36px).
-- Setup: il blocco anteprima 3 colonne va bene su mobile, ma valutare se spostare il pulsante "Inizia Torneo" sticky in basso per essere sempre raggiungibile col pollice.
-
-### Safe areas iOS (notch / dynamic island)
-- Aggiungere padding `env(safe-area-inset-*)` su header sticky e su eventuali bottoni sticky per non finire sotto il notch o sotto la home indicator quando installata in standalone.
-- Aggiungere `viewport-fit=cover` al meta viewport in `__root.tsx`.
-
-### Desktop
-- Aggiungere `max-w-3xl mx-auto` (già c'è) e centrare meglio header/footer.
-- Su schermi ≥1024px mostrare tabella classifica e card affiancate (grid 2 colonne) invece che una sotto l'altra.
-- Hover states: già presenti, mantenere.
+Aggiungere un secondo tema **light arcade** all'app (senza toccare nulla del dark esistente), con:
+- **Default = sistema operativo** (`prefers-color-scheme`)
+- **Toggle manuale** che ha la precedenza e viene ricordato in `localStorage`
+- Toggle visibile sia nell'**header del torneo** sia nella schermata di **setup iniziale**
+- Estetica light che mantiene la **vibe arcade** (accenti neon vividi, glow attenuati ma presenti)
+- **Zero regressioni** sul tema dark (è e resta il look principale)
 
 ---
 
-## 2. PWA installabile — manifest + icone + meta
+## 1 · Token CSS — `src/styles.css`
 
-### File da creare in `public/`
-- `public/manifest.webmanifest` — definisce nome, colori, icone, `display: "standalone"`, `start_url: "/"`, orientamento `portrait`, lingua `it`, theme color coerente col background dark dell'app.
-- `public/icon-192.png` — icona 192×192, sfondo dark con il 🏓 in stile neon ciano (generata in build come PNG da uno script Node, oppure con un SVG inline convertito). Userò un'icona programmatica generata via script Node usando `sharp` non disponibile su Worker → genero invece in fase di scrittura file statici, una volta sola.
-- `public/icon-512.png` — 512×512 (per splash Android e store).
-- `public/icon-512-maskable.png` — 512×512 con safe area al 80% (per icone adattive Android).
-- `public/apple-touch-icon.png` — 180×180 (richiesto da iOS, non legge il manifest per l'icona home).
-- `public/favicon.ico` (opzionale, già implicito).
+### a) Aggiunta variabili light nel `:root`
+Oggi `:root` contiene direttamente i valori dark. Lo riorganizzo così:
+- `:root` → contiene **i token light** come default visivo *fallback*, MA anche `color-scheme: light dark` per dire al browser che supportiamo entrambi
+- `.dark` → contiene **tutti i token dark** (come oggi, ma esplicitati)
+- Questo permette a `dark`/`light` di essere indipendenti senza che il light "eredite" rimasugli del dark
 
-> Le icone le genero con uno script una tantum durante l'implementazione, scegliendo lo sfondo `#0a0a14` e l'emoji 🏓 centrato con glow ciano, così sono perfettamente coerenti con l'estetica.
+In pratica: estraggo l'attuale blocco di valori da `:root` (riga 58-112) e lo duplico anche dentro `.dark` (oggi `.dark` ha solo metà dei token — manca `--surface-1/2/3`, `--neon-*`, `--gradient-*`, `--glow-*` che sono globali in `:root`). Risultato: i token "globali" (neon, gradienti, glow) restano in `:root` perché identici nei due temi, mentre i token *semantici* (background, foreground, card, surface, border, muted, ecc.) vengono duplicati con valori chiari sotto `.light` (o lasciati in `:root` come default light, e `.dark` li sovrascrive).
 
-### Modifiche a `src/routes/__root.tsx` (head)
-Aggiungere nella `head()`:
-- `<link rel="manifest" href="/manifest.webmanifest">`
-- `<meta name="theme-color" content="#0a0a14">`
-- `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">` (sostituisce quello attuale)
-- `<link rel="apple-touch-icon" href="/apple-touch-icon.png">`
-- `<meta name="apple-mobile-web-app-capable" content="yes">` + `<meta name="mobile-web-app-capable" content="yes">`
-- `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
-- `<meta name="apple-mobile-web-app-title" content="Ping Pong">`
-- `<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">`
+**Strategia scelta** (più sicura, niente regressioni):
+- Tengo `.dark` come oggi → contiene esplicitamente tutto il dark
+- Cambio `:root` in modo che ospiti i **token light** + tutti i token "neutri" (radius, neon, gradienti, glow, font)
+- Aggiungo `color-scheme: light dark` su `:root` e lo specializzo (`light` / `dark`) nelle classi
 
-### Comportamento "installabile"
-Con questo setup:
-- **Chrome/Edge Android**: appare automaticamente il prompt "Aggiungi a schermata Home" → si installa e si apre standalone (no barra URL), splash screen generato dall'icona 512.
-- **Safari iOS**: l'utente fa Condividi → "Aggiungi alla schermata Home" → si apre standalone, status bar trasparente, icona pulita.
-- **Desktop Chrome/Edge**: appare l'icona "Installa" nella barra degli indirizzi → installata come app finestrata.
+### b) Palette light arcade
+Valori light proposti (oklch, in linea col design system):
+```
+--background: oklch(0.985 0.005 250);   /* bianco caldo, niente puro #fff */
+--foreground: oklch(0.18 0.02 270);     /* testo quasi-nero bluastro */
+--surface-1: oklch(0.96 0.008 250);
+--surface-2: oklch(0.93 0.01 250);
+--surface-3: oklch(0.89 0.012 250);
+--card: oklch(1 0 0);
+--card-foreground: oklch(0.18 0.02 270);
+--popover: oklch(1 0 0);
+--popover-foreground: oklch(0.18 0.02 270);
 
-### Cosa non includeremo (e perché)
-- **Service worker**: causerebbe contenuto stantio nell'editor preview di Lovable. L'app funzionerà solo con connessione (è comunque un'app locale che salva in localStorage, quindi una volta caricata anche su rete debole resta usabile durante la sessione).
-- **Funzionamento offline completo**: opzionale come step 2, da fare solo dopo il deploy.
+/* Primary cyan ma scurito per contrasto su sfondo chiaro */
+--primary: oklch(0.55 0.16 220);
+--primary-foreground: oklch(0.98 0.005 250);
+
+--secondary: oklch(0.93 0.01 250);
+--secondary-foreground: oklch(0.18 0.02 270);
+--muted: oklch(0.93 0.01 250);
+--muted-foreground: oklch(0.45 0.02 260);
+--accent: oklch(0.93 0.01 250);
+--accent-foreground: oklch(0.18 0.02 270);
+--destructive: oklch(0.55 0.22 25);
+--destructive-foreground: oklch(0.98 0.005 250);
+--border: oklch(0.85 0.012 250);
+--input: oklch(0.85 0.012 250);
+--ring: oklch(0.55 0.16 220);
+
+/* Neon: stessi hue ma scuriti per restare vivi e leggibili su bianco */
+--neon-cyan: oklch(0.62 0.18 220);
+--neon-lime: oklch(0.68 0.22 130);
+--neon-gold: oklch(0.72 0.17 90);
+--neon-red: oklch(0.58 0.22 25);
+--neon-magenta: oklch(0.55 0.25 350);
+
+/* Header gradient adattato (chiaro→bianco) */
+--gradient-header: linear-gradient(180deg, var(--surface-1), var(--background));
+/* Glow ridotti ma visibili */
+--glow-cyan: 0 0 16px color-mix(in oklab, var(--neon-cyan) 28%, transparent);
+--glow-gold: 0 0 18px color-mix(in oklab, var(--neon-gold) 32%, transparent);
+```
+
+### c) Adattamenti minori per i componenti
+Verifico che le classi `.neon-title`, `.neon-logo`, `.match-card.is-done`, `.standings-row.is-top`, `.champion-banner`, `.saved-toast` funzionino bene con i nuovi token. Sono già scritte con `var(--color-*)` e `color-mix`, quindi si adattano automaticamente. Eventuale fine-tuning solo su:
+- `.neon-title` text-shadow → riduco intensità nel light (override scoped: `:root:not(.dark) .neon-title { text-shadow: 0 0 12px ... }`)
+- `.match-card.is-done` background → oggi è `color-mix(neon-lime 4%, card)`, su bianco diventa quasi invisibile → porto al 10% nel light
+- `.score-input` → su light il `surface-2` chiaro va già bene, già coperto dai token
+
+### d) Meta `theme-color` dinamico
+Tolgo da `__root.tsx` l'attuale meta `{ name: "theme-color", content: "#0a0a14" }` e lo gestisco runtime via JS sul componente `ThemeProvider` (vedi punto 3), aggiornando `<meta name="theme-color">` in base al tema attivo (chiaro → `#fafafa`, scuro → `#0a0a14`). Aggiungo anche le **media-queried** statiche come fallback SSR:
+```html
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafafa">
+<meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#0a0a14">
+```
 
 ---
 
-## 3. File toccati / creati
+## 2 · Shell HTML — `src/routes/__root.tsx`
+
+- Rimuovo `className="dark"` hardcoded da `<html>` (riga 80) → diventa `<html lang="it" suppressHydrationWarning>` 
+- Aggiungo uno script *blocking inline* nell'`<head>` (via `head.scripts` di TanStack) che, **prima** della prima paint, legge `localStorage["pp-theme"]` (`"light" | "dark" | null`) e applica la classe corretta a `document.documentElement`. Se non c'è scelta utente, usa `matchMedia("(prefers-color-scheme: dark)")`. Questo evita il **FOUC** (flash bianco/scuro) all'avvio e funziona sia in dev che in standalone PWA.
+- Aggiorno `color-scheme` meta a `"light dark"` invece di `"dark"`.
+- Aggiorno i 2 meta `theme-color` con media query (vedi punto 1d).
+
+---
+
+## 3 · Hook tema — nuovo file `src/hooks/useTheme.ts`
+
+Hook minimale, no librerie esterne:
+```ts
+type Theme = "light" | "dark";
+type ThemeMode = Theme | "system"; // scelta utente
+useTheme() → { theme: Theme, mode: ThemeMode, setMode: (m) => void, toggle: () => void }
+```
+- Legge/scrive `localStorage["pp-theme"]` (valori: `"light"`, `"dark"`, o assente = system)
+- Applica/rimuove classe `dark` su `document.documentElement`
+- Sottoscrive `matchMedia("(prefers-color-scheme: dark)")` quando mode = `"system"` (così se l'utente cambia tema OS mentre l'app è aperta, si aggiorna live)
+- Sincronizza `<meta name="theme-color">` runtime
+- SSR-safe: durante SSR ritorna `theme: "dark"` (default arcade) e si aggiorna lato client al mount; lo script inline del punto 2 evita il flash visivo.
+
+---
+
+## 4 · Componente toggle — nuovo file `src/components/ThemeToggle.tsx`
+
+Bottone unico icona (Sun ↔ Moon da `lucide-react` — già installato come dipendenza shadcn) con:
+- `aria-label="Cambia tema"` + `aria-pressed`
+- Stesso stile compatto del pulsante reset esistente nell'header (`h-10 w-10` o `h-9 w-9`, border, rounded-md, hover neon-cyan)
+- Click → `toggle()` (light↔dark esplicito, ignorando `system` se l'utente clicca volontariamente)
+- Animazione sottile (rotate-90 + fade) sull'icona al cambio
+
+---
+
+## 5 · Inserimento toggle nelle pagine
+
+### a) `src/routes/tournament.tsx` — header
+Nella riga 1 dell'header (logo + titolo + reset, righe ~152-172) inserisco `<ThemeToggle />` **prima** del pulsante reset, così sull'header sticky compare: `🏓 PING PONG ........ [☀/🌙] [↺]`. Touch target 40×40, già conforme alle linee guida mobile.
+
+### b) `src/routes/index.tsx` — setup iniziale
+Aggiungo un piccolo selettore **in alto a destra**, fluttuante rispetto all'header centrato:
+```tsx
+<div className="absolute right-3 top-3 safe-top"><ThemeToggle /></div>
+```
+Sulla `<main>` aggiungo `relative`. Nessun impatto sul layout centrato esistente.
+
+---
+
+## 6 · Verifiche per "no regressioni" (checklist QA)
+
+Dopo le modifiche eseguo questa verifica visiva mentale + (se il preview è disponibile) console:
+
+**Dark mode (default)**
+- [ ] Logo, titolo neon, header gradient, progress bar identici a prima (stessi token)
+- [ ] Match card hover/done invariati
+- [ ] Score input vincente con border colorato del giocatore: invariato
+- [ ] Toast "salvato" lime invariato
+- [ ] Champion banner gold pulsante invariato
+- [ ] Tab attivo cyan glow invariato
+- [ ] Setup page e PlayersEditor invariati
+
+**Light mode (nuovo)**
+- [ ] Sfondo chiaro caldo, testo quasi-nero
+- [ ] Accenti cyan/lime/gold ancora vividi e leggibili (contrast ratio ≥ 4.5:1 su testi)
+- [ ] Glow ridotti ma percepibili (vibe arcade preservata)
+- [ ] Score input visibili anche in stato `is-loser` (non spariscono su sfondo chiaro)
+- [ ] Match card "is-done" distinguibile (lime al 10%)
+- [ ] Champion banner pulsa ancora
+- [ ] Toast "salvato" leggibile
+- [ ] Pulsante "Inizia Torneo" disabilitato non sparisce
+
+**Comportamento toggle**
+- [ ] Primo accesso senza preferenza → segue OS
+- [ ] Click toggle → cambia istantaneamente, persiste al refresh
+- [ ] Cambio tema OS in tempo reale → app si adatta (solo se utente non ha mai cliccato il toggle)
+- [ ] Niente FOUC al refresh in dark, niente FOUC in light
+- [ ] PWA installata: theme-color della status bar iOS/Android coerente col tema
+
+---
+
+## 7 · File toccati / creati
 
 **Modificati**
-- `src/routes/__root.tsx` — meta PWA, viewport con safe-area, link manifest e icone
-- `src/routes/tournament.tsx` — Header responsive, tab scrollabili, vista classifica mobile/desktop, padding rifiniti
-- `src/routes/index.tsx` — pulsante CTA leggermente più ergonomico su mobile
-- `src/components/PlayersEditor.tsx` — touch target più grandi
-- `src/styles.css` — aggiunte: `safe-area` utilities, `scrollbar-hidden`, breakpoint sm per `match-card` e `score-input`, regole `@media (display-mode: standalone)` per piccolo polish (es. nascondere eventuali elementi non utili in modalità app)
+- `src/styles.css` — riorganizzazione `:root` + `.dark`, palette light arcade, override scoped per `.neon-title` light, fix `.match-card.is-done` light
+- `src/routes/__root.tsx` — rimozione `className="dark"` hardcoded, aggiunta script anti-FOUC inline, meta `theme-color` con media query, `color-scheme: light dark`
+- `src/routes/tournament.tsx` — `<ThemeToggle />` nell'header (1 riga)
+- `src/routes/index.tsx` — `<ThemeToggle />` posizionato assoluto top-right (3 righe)
 
 **Creati**
-- `public/manifest.webmanifest`
-- `public/icon-192.png`, `public/icon-512.png`, `public/icon-512-maskable.png`, `public/apple-touch-icon.png`
+- `src/hooks/useTheme.ts` — hook tema con system + persistenza + sync meta
+- `src/components/ThemeToggle.tsx` — bottone icona Sun/Moon
+
+**Memoria progetto** (a fine implementazione)
+- Salverò in `mem://design/theme-system` la scelta dual-theme + default system + toggle in 2 punti, così rimane traccia per future modifiche.
 
 ---
 
-## 4. Verifica finale
-- Test responsive a 320, 360, 390, 768, 1280px (browser tools).
-- Lighthouse PWA: dovrebbe passare le voci "installable" (manifest + icone + display standalone). Le voci legate a service worker resteranno N/A — è atteso.
-- Verifica console: nessun warning su manifest.
+## 8 · Cosa NON faccio (per evitare scope creep / regressioni)
 
----
+- ❌ Niente libreria `next-themes` o simili — overkill, gestiamo a mano
+- ❌ Nessuna modifica ai componenti shadcn (`ui/*`) — già usano i token semantici
+- ❌ Nessun cambio alla logica torneo, persistenza match, generatore Berger, PWA manifest, icone
+- ❌ Nessun "tema sistema" come terza opzione esposta in UI — il toggle è binario light/dark, ma il *default iniziale* segue il sistema (UX pulita, no menu a tendina)
 
-Confermi che procediamo così? (Se vuoi anche il **service worker per offline** dimmelo: lo faccio in una task separata, da attivare solo dopo deploy, con guard contro l'iframe di preview.)
+Pronto a implementare appena dai l'ok.
