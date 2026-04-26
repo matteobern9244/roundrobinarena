@@ -124,7 +124,6 @@ function Header({
   done,
   total,
   pct,
-  savedFlash,
   tab,
   onTab,
   onReset,
@@ -133,7 +132,6 @@ function Header({
   done: number;
   total: number;
   pct: number;
-  savedFlash: boolean;
   tab: Tab;
   onTab: (t: Tab) => void;
   onReset: () => void;
@@ -146,53 +144,59 @@ function Header({
 
   return (
     <header
-      className="sticky top-0 z-50 border-b border-border px-4 pt-4"
+      className="sticky top-0 z-50 border-b border-border safe-top"
       style={{ background: "var(--gradient-header)" }}
     >
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-3 flex flex-wrap items-center gap-3">
-          <span className="neon-logo text-3xl" aria-hidden>
+      <div className="mx-auto max-w-3xl px-3 pt-3 sm:px-4 sm:pt-4">
+        {/* Riga 1: logo + titolo + reset compatto a destra */}
+        <div className="mb-2 flex items-center gap-3">
+          <span className="neon-logo text-2xl sm:text-3xl" aria-hidden>
             🏓
           </span>
           <div className="min-w-0 flex-1">
-            <h1 className="neon-title text-lg font-black sm:text-xl">PING PONG</h1>
-            <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-              {playersCount} Giocatori · All vs All · A {WIN_SCORE}
+            <h1 className="neon-title text-base font-black leading-none sm:text-xl">
+              PING PONG
+            </h1>
+            <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground sm:tracking-[0.25em]">
+              {playersCount} Giocatori · A {WIN_SCORE}
             </p>
           </div>
-          <div className="ml-auto text-right">
-            <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              {done}/{total} · {pct}%
-            </div>
-            <div className="progress-bar w-32 sm:w-40">
-              <div className="progress-fill" style={{ width: `${pct}%` }} />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => onTab(t.id)}
-              className={`nav-tab ${tab === t.id ? "active" : ""}`}
-            >
-              {t.label}
-            </button>
-          ))}
           <button
             type="button"
             onClick={onReset}
-            className="ml-auto rounded-md border border-border bg-transparent px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+            aria-label="Reset torneo"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
           >
-            ↺ Reset
-          </button>
-          {savedFlash && (
-            <span className="text-[10px] font-bold uppercase tracking-widest text-neon-lime">
-              ✓ Salvato
+            <span aria-hidden className="text-base">
+              ↺
             </span>
-          )}
+          </button>
+        </div>
+
+        {/* Riga 2: barra di progresso a tutta larghezza */}
+        <div className="mb-2 flex items-center gap-2">
+          <div className="progress-bar flex-1">
+            <div className="progress-fill" style={{ width: `${pct}%` }} />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground tabular-nums">
+            {done}/{total} · {pct}%
+          </span>
+        </div>
+
+        {/* Riga 3: tab scrollabili orizzontalmente */}
+        <div className="-mx-3 sm:-mx-4">
+          <div className="scrollbar-hidden flex items-center gap-1 overflow-x-auto px-3 sm:px-4">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => onTab(t.id)}
+                className={`nav-tab ${tab === t.id ? "active" : ""}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </header>
