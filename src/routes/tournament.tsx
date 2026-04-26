@@ -289,28 +289,26 @@ function MatchRow({
       </div>
 
       {/* Score */}
-      <div className="flex items-center gap-2">
+      <div className="score-zone">
         <input
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           aria-label={`Punteggio ${match.p1}`}
           value={match.score1}
           onChange={(e) => onScoreChange(match, "score1", e.target.value)}
-          className={`score-input ${
-            winner === match.p2 ? "is-loser" : ""
-          }`}
+          className={`score-input ${winner === match.p2 ? "is-loser" : ""}`}
           style={inputStyle(winner === match.p1, c1)}
         />
         <span className="text-xl font-black text-muted-foreground">:</span>
         <input
           type="text"
           inputMode="numeric"
+          pattern="[0-9]*"
           aria-label={`Punteggio ${match.p2}`}
           value={match.score2}
           onChange={(e) => onScoreChange(match, "score2", e.target.value)}
-          className={`score-input ${
-            winner === match.p1 ? "is-loser" : ""
-          }`}
+          className={`score-input ${winner === match.p1 ? "is-loser" : ""}`}
           style={inputStyle(winner === match.p2, c2)}
         />
       </div>
