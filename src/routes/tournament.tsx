@@ -70,19 +70,18 @@ function TournamentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground safe-x">
       <Header
         playersCount={players.length}
         done={done}
         total={total}
         pct={pct}
-        savedFlash={savedFlash}
         tab={tab}
         onTab={setTab}
         onReset={handleReset}
       />
 
-      <main className="mx-auto max-w-3xl px-4 py-6">
+      <main className="mx-auto max-w-3xl px-3 py-5 sm:px-4 sm:py-6 safe-bottom">
         {tab === "matches" && (
           <MatchesView
             rounds={liveRounds}
@@ -108,6 +107,12 @@ function TournamentPage() {
           />
         )}
       </main>
+
+      {savedFlash && (
+        <div className="saved-toast" role="status" aria-live="polite">
+          ✓ Salvato
+        </div>
+      )}
     </div>
   );
 }
