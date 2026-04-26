@@ -67,7 +67,7 @@ export function PlayersEditor({ players, onChange, showError = true }: Props) {
                 onClick={() => remove(idx)}
                 disabled={players.length <= MIN_PLAYERS}
                 aria-label={`Rimuovi ${name || `giocatore ${idx + 1}`}`}
-                className="rounded-md border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-border disabled:hover:text-muted-foreground"
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-border text-sm text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-border disabled:hover:text-muted-foreground"
               >
                 ✕
               </button>
