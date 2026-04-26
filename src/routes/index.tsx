@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { PlayersEditor } from "@/components/PlayersEditor";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTournament } from "@/hooks/useTournament";
 import {
   DEFAULT_PLAYERS,
@@ -49,8 +50,11 @@ function SetupPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-5 px-3 py-6 safe-x safe-bottom sm:gap-6 sm:px-4 sm:py-8">
+    <main className="relative mx-auto flex min-h-screen max-w-xl flex-col gap-5 px-3 py-6 safe-x safe-bottom sm:gap-6 sm:px-4 sm:py-8">
       <div className="safe-top" />
+      <div className="absolute right-3 top-3 sm:right-4 sm:top-4" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <ThemeToggle />
+      </div>
       <header className="flex flex-col items-center gap-3 text-center">
         <span className="neon-logo text-5xl" aria-hidden>
           🏓
