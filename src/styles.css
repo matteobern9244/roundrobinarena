@@ -213,7 +213,11 @@
   }
 
   .nav-tab {
-    padding: 10px 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px; /* touch target accessibile */
+    padding: 0 14px;
     background: transparent;
     border: none;
     border-bottom: 3px solid transparent;
@@ -224,6 +228,9 @@
     letter-spacing: 2px;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .nav-tab:hover {
