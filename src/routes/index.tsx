@@ -49,7 +49,8 @@ function SetupPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-5 px-3 py-6 safe-x safe-bottom sm:gap-6 sm:px-4 sm:py-8">
+      <div className="safe-top" />
       <header className="flex flex-col items-center gap-3 text-center">
         <span className="neon-logo text-5xl" aria-hidden>
           🏓
