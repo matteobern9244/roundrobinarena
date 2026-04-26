@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { PlayersEditor } from "@/components/PlayersEditor";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTournament } from "@/hooks/useTournament";
 import {
   applyScoreUpdate,
@@ -161,6 +162,7 @@ function Header({
               {playersCount} Giocatori · A {WIN_SCORE}
             </p>
           </div>
+          <ThemeToggle />
           <button
             type="button"
             onClick={onReset}

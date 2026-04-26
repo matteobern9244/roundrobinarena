@@ -2,6 +2,25 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 
+/**
+ * Script eseguito SINCRONAMENTE prima della prima paint.
+ * Legge la preferenza tema salvata (o di sistema) e applica `class="dark"`
+ * su <html>. Evita il flash bianco/scuro al refresh.
+ */
+const themeBootstrap = `
+(function(){
+  try {
+    var v = localStorage.getItem("pp-theme");
+    var dark = v === "dark" || (v !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var root = document.documentElement;
+    if (dark) root.classList.add("dark"); else root.classList.remove("dark");
+  } catch (e) {
+    // Fallback dark se localStorage non disponibile
+    document.documentElement.classList.add("dark");
+  }
+})();
+`;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -39,9 +58,10 @@ export const Route = createRootRoute({
         content:
           "Gestisci un torneo di ping pong all vs all con 3-8 giocatori configurabili, classifica live e salvataggio automatico.",
       },
-      // PWA / theming
+      // PWA / theming — supporto entrambi i temi
+      { name: "color-scheme", content: "light dark" },
+      // Fallback statico (sostituito a runtime dal toggle in base alla scelta utente)
       { name: "theme-color", content: "#0a0a14" },
-      { name: "color-scheme", content: "dark" },
       { name: "application-name", content: "Ping Pong" },
       // iOS standalone
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -69,6 +89,10 @@ export const Route = createRootRoute({
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "shortcut icon", href: "/favicon.ico" },
     ],
+    scripts: [
+      // Eseguito prima della prima paint per evitare FOUC del tema
+      { children: themeBootstrap },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -77,7 +101,7 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="it" className="dark">
+    <html lang="it" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
