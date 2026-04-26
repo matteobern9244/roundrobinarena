@@ -354,7 +354,7 @@
   }
 
   .match-card.is-done {
-    background: color-mix(in oklab, var(--neon-lime) 4%, var(--color-card));
+    background: color-mix(in oklab, var(--neon-lime) var(--done-mix), var(--color-card));
   }
 
   .player-side {
@@ -427,7 +427,7 @@
   .standings-row.is-top {
     background: linear-gradient(
       90deg,
-      color-mix(in oklab, var(--neon-gold) 12%, transparent),
+      color-mix(in oklab, var(--neon-gold) var(--top-mix), transparent),
       transparent
     );
   }
