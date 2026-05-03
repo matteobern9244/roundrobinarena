@@ -79,7 +79,7 @@ function shuffle<T>(arr: T[]): T[] {
  * Totale partite sempre N*(N-1)/2.
  */
 export function generateRounds(players: string[]): Round[] {
-  const list = [...players];
+  const list = shuffle(players);
   if (list.length < 2) return [];
   if (list.length % 2 === 1) list.push(BYE);
 
