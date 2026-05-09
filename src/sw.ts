@@ -21,7 +21,22 @@ self.addEventListener("install", () => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      await self.clients.claim();
+      // Pre-warm: scarica e cachea "/" così l'app è subito disponibile offline
+      // anche se l'utente non ha ancora navigato di nuovo.
+      try {
+        const cache = await caches.open(HTML_CACHE);
+        const res = await fetch("/", { cache: "reload" });
+        if (res && (res.ok || res.type === "opaque")) {
+          await cache.put("/", res.clone());
+        }
+      } catch {
+        /* offline o errore: ignora */
+      }
+    })(),
+  );
 });
 
 self.addEventListener("message", (event) => {
