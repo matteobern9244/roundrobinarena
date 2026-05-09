@@ -30,6 +30,7 @@ function TournamentPage() {
     state,
     savedFlash,
     updateMatch,
+    assignServer,
     replacePlayers,
     renamePlayers,
     clearTournament,
