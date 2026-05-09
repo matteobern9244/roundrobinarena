@@ -49,9 +49,6 @@ self.addEventListener("message", (event) => {
   }
 });
 
-const HTML_CACHE = "html-pages";
-const ASSET_CACHE = "assets";
-const IMG_CACHE = "images-fonts";
 
 // Navigazioni → NetworkFirst, salva in HTML_CACHE per offline.
 registerRoute(
