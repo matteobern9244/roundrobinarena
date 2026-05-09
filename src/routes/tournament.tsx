@@ -257,14 +257,19 @@ function MatchRow({
   match,
   players,
   onScoreChange,
+  onAssignServer,
 }: {
   match: Match;
   players: string[];
   onScoreChange: (m: Match, field: "score1" | "score2", value: string) => void;
+  onAssignServer: (matchId: string, server: "p1" | "p2") => void;
 }) {
   const c1 = colorFor(players, match.p1);
   const c2 = colorFor(players, match.p2);
   const winner = match.winner;
+  const total = matchTotalPoints(match);
+  const server = currentServer(match);
+  const canAssign = !winner && total === 0;
 
   const inputStyle = (isWinner: boolean, color: string) =>
     isWinner
@@ -275,11 +280,44 @@ function MatchRow({
         }
       : undefined;
 
+  const ballForP1 = canAssign ? (
+    <button
+      type="button"
+      onClick={() => onAssignServer(match.id, "p1")}
+      className={`serve-assign-btn ${match.firstServer === "p1" ? "is-active" : ""}`}
+      aria-label={`Assegna la palla a ${match.p1}`}
+      aria-pressed={match.firstServer === "p1"}
+    >
+      🏓
+    </button>
+  ) : server === "p1" ? (
+    <span className="serve-ball animate-fade-in" aria-label={`Al servizio: ${match.p1}`}>
+      🏓
+    </span>
+  ) : null;
+
+  const ballForP2 = canAssign ? (
+    <button
+      type="button"
+      onClick={() => onAssignServer(match.id, "p2")}
+      className={`serve-assign-btn ${match.firstServer === "p2" ? "is-active" : ""}`}
+      aria-label={`Assegna la palla a ${match.p2}`}
+      aria-pressed={match.firstServer === "p2"}
+    >
+      🏓
+    </button>
+  ) : server === "p2" ? (
+    <span className="serve-ball animate-fade-in" aria-label={`Al servizio: ${match.p2}`}>
+      🏓
+    </span>
+  ) : null;
+
   return (
     <div className={`match-card ${winner ? "is-done" : ""}`}>
       {/* P1 */}
       <div className="player-side">
         <span className="player-dot" style={{ backgroundColor: c1 }} />
+        {ballForP1}
         <span className="player-name" style={{ color: winner === match.p1 ? c1 : undefined }}>
           {match.p1}
         </span>
@@ -317,6 +355,7 @@ function MatchRow({
         <span className="player-name" style={{ color: winner === match.p2 ? c2 : undefined }}>
           {match.p2}
         </span>
+        {ballForP2}
         <span className="player-dot" style={{ backgroundColor: c2 }} />
       </div>
     </div>
