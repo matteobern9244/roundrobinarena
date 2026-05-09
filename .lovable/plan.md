@@ -1,61 +1,45 @@
+# Piano: offline completo e affidabile per tutta l’app
+
 ## Obiettivo
+Far funzionare davvero l’app senza rete, sia:
+- aprendo la PWA già offline
+- andando offline mentre l’app è aperta
+- rientrando nelle schermate principali senza nuove richieste di rete
 
-Rendere Round Robin Arena completamente utilizzabile offline: dopo il primo caricamento online, l'app deve avviarsi, navigare e gestire i tornei senza connessione. I dati sono già 100% in `localStorage`, quindi serve solo cachare gli asset statici (HTML/JS/CSS/font/icone).
+## Cosa cambierò
 
-## Cosa cambierà
+### 1) Rendere offline la shell dell’app in modo deterministico
+- Sostituire il fallback HTML “opportunistico” del Service Worker con una shell offline esplicita e sempre disponibile.
+- Cacheare in modo affidabile la pagina principale e i file essenziali per l’avvio dell’app, così l’app non dipende da una fetch runtime a `/` che può fallire o arrivare troppo tardi.
+- Gestire correttamente le navigazioni in modalità standalone PWA e browser normale.
 
-### 1. Dipendenza
-- Aggiungere `vite-plugin-pwa` come devDependency.
+### 2) Garantire offline anche il routing interno
+- Verificare e adattare la strategia di caching delle navigazioni TanStack Start, così la route `/tournament` continua a funzionare offline e non cade su schermo vuoto/nero.
+- Evitare che la route attiva dipenda da HTML o chunk non ancora presenti in cache.
+- Se necessario, aggiungere una strategia di preload/cache per i chunk critici delle route principali.
 
-### 2. `vite.config.ts`
-Configurare `VitePWA` con:
-- `registerType: "autoUpdate"` — aggiornamenti silenziosi quando esce una nuova build.
-- `devOptions: { enabled: false }` — il SW NON parte in dev/preview Lovable (evita cache stantia nell'editor).
-- `workbox.navigateFallback: "/index.html"` per SPA fallback offline.
-- `workbox.navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//]`.
-- `workbox.runtimeCaching`:
-  - HTML navigations → `NetworkFirst` (cache `html`, timeout 3s).
-  - JS/CSS/worker → `StaleWhileRevalidate` (cache `assets`).
-  - Immagini/icone/font → `CacheFirst` (cache `images`, max 60 entries, 30 giorni).
-- `manifest: false` — manteniamo il `manifest.webmanifest` esistente in `public/`.
-- `includeAssets`: favicon, apple-touch-icon, icone PNG.
+### 3) Far partire l’app offline anche dopo il primo avvio online
+- Migliorare l’installazione/attivazione del Service Worker per pre-cache e warmup reali dei file indispensabili.
+- Eliminare i casi in cui il Service Worker è installato ma la shell non è ancora pronta quando l’utente chiude o perde connessione.
+- Verificare il flusso di update, così non resta una versione mezza cacheata.
 
-### 3. Registrazione del Service Worker
-Nuovo modulo `src/pwa-register.ts` che:
-- Importa `registerSW` da `virtual:pwa-register`.
-- Esegue **solo se** non siamo in iframe e non siamo su host preview Lovable (`id-preview--*`, `lovableproject.com`).
-- Negli host preview/iframe, fa `unregister()` di eventuali SW residui per pulizia.
+### 4) Proteggere l’esperienza in assenza di rete
+- Aggiungere un fallback UI chiaro quando il browser è offline ma manca ancora qualche risorsa locale, invece di finire in pagina nera.
+- Mantenere i dati torneo e tema completamente locali come già previsto, senza introdurre backend.
+- Controllare che non ci siano dipendenze residue dalla rete nelle schermate principali.
 
-Importato una sola volta da `src/router.tsx` (lato client).
+### 5) Validare i casi reali d’uso offline
+Testerò i casi critici da coprire:
+- primo avvio online, poi refresh offline
+- apertura diretta della PWA offline
+- uso dell’app aperta mentre si perde la connessione
+- navigazione tra setup e torneo offline con dati già salvati
 
-### 4. UI: indicatore stato offline + update disponibile
-- Nuovo componente `src/components/OfflineBadge.tsx`: piccolo badge in header che ascolta `online`/`offline` e mostra "OFFLINE" con stile neon quando manca rete.
-- Nuovo componente `src/components/UpdatePrompt.tsx`: toast non invasivo "Nuova versione disponibile · Aggiorna" quando `registerSW` segnala `onNeedRefresh`. Cliccando ricarica.
-- Entrambi montati nel layout root (`__root.tsx` → `RootComponent`).
+## Risultato atteso
+Dopo la correzione, l’app dovrà aprirsi e restare utilizzabile offline in modo coerente, con classifica, partite, tema e stato torneo disponibili dal dispositivo anche senza connessione.
 
-### 5. TypeScript
-- Aggiungere `vite-plugin-pwa/client` ai `types` di `tsconfig.json` per il modulo virtuale `virtual:pwa-register`.
-
-### 6. Documentazione
-- `README.md`: nuova sezione "Offline / PWA" con istruzioni (installabile da home, funziona offline dopo primo caricamento, testabile solo su URL pubblicato).
-- `CHANGELOG.md`: voce `## [0.6.0]` — Supporto offline completo via Service Worker.
-- `docs/architecture.md`: sottosezione PWA aggiornata (strategia di caching, registrazione condizionale, badge offline).
-
-## Note tecniche
-
-- Il SW viene registrato solo in produzione, quindi nell'editor Lovable non vedrai il comportamento offline: va testato sul **published URL** (`roundrobinarena.lovable.app`) o tramite "Share preview".
-- Lo stato torneo è già persistente in `localStorage` → nessuna modifica alla logica di dominio.
-- Nessun backend coinvolto: l'app rimane 100% client-side.
-- Manifest esistente già configurato (`display: standalone`, icone, theme color) → installabile su iOS/Android senza modifiche.
-
-## File toccati
-
-- `package.json` (nuova dep)
-- `vite.config.ts`
-- `tsconfig.json`
-- `src/router.tsx`
-- `src/pwa-register.ts` (nuovo)
-- `src/components/OfflineBadge.tsx` (nuovo)
-- `src/components/UpdatePrompt.tsx` (nuovo)
-- `src/routes/__root.tsx`
-- `README.md`, `CHANGELOG.md`, `docs/architecture.md`
+## Dettagli tecnici
+- Revisione della config `vite-plugin-pwa` e del Service Worker custom.
+- Possibile introduzione di una vera offline shell/fallback cacheata esplicitamente.
+- Revisione del caching di HTML, asset hashati e chunk JS/CSS delle route principali.
+- Verifica del bootstrap client e del flusso di registrazione/aggiornamento del SW per evitare cache parziali o shell mancante.
