@@ -28,6 +28,8 @@ export const DEFAULT_PLAYERS = [
   "Adriano",
 ];
 
+export type ServerSide = "p1" | "p2";
+
 export type Match = {
   id: string;
   round: number;
@@ -36,7 +38,28 @@ export type Match = {
   score1: string;
   score2: string;
   winner: string | null;
+  /** Chi ha vinto il punto fittizio iniziale "per la palla". Modificabile solo a 0–0. */
+  firstServer?: ServerSide | null;
 };
+
+export const SERVE_SWITCH_EVERY = 5;
+
+/** Punti totali "veri" giocati nel match (esclude il punto fittizio per la palla). */
+export function matchTotalPoints(match: Match): number {
+  const s1 = parseInt(match.score1, 10);
+  const s2 = parseInt(match.score2, 10);
+  return (Number.isNaN(s1) ? 0 : s1) + (Number.isNaN(s2) ? 0 : s2);
+}
+
+/** Restituisce chi è al servizio in questo momento, o null se nessuno. */
+export function currentServer(match: Match): ServerSide | null {
+  if (match.winner) return null;
+  if (!match.firstServer) return null;
+  const total = matchTotalPoints(match);
+  const switches = Math.floor(total / SERVE_SWITCH_EVERY);
+  const flipped: ServerSide = match.firstServer === "p1" ? "p2" : "p1";
+  return switches % 2 === 0 ? match.firstServer : flipped;
+}
 
 export type Round = {
   round: number;

@@ -41,6 +41,7 @@ export type UseTournament = {
   resetMatches: () => void;
   clearTournament: () => void;
   updateMatch: (next: Match) => void;
+  assignServer: (matchId: string, server: "p1" | "p2") => void;
   replacePlayers: (players: string[]) => void;
   renamePlayers: (oldNames: string[], newNames: string[]) => void;
 };
@@ -138,6 +139,28 @@ export function useTournament(): UseTournament {
     [persist],
   );
 
+  // Assegna il "first server" — consentito solo a 0–0 e match non concluso.
+  const assignServer = useCallback(
+    (matchId: string, server: "p1" | "p2") => {
+      setState((prev) => {
+        if (!prev) return prev;
+        const matches = prev.matches.map((m) => {
+          if (m.id !== matchId) return m;
+          if (m.winner) return m;
+          const s1 = parseInt(m.score1, 10);
+          const s2 = parseInt(m.score2, 10);
+          const total = (Number.isNaN(s1) ? 0 : s1) + (Number.isNaN(s2) ? 0 : s2);
+          if (total !== 0) return m;
+          return { ...m, firstServer: server };
+        });
+        const next: TournamentState = { players: prev.players, matches };
+        persist(next);
+        return next;
+      });
+    },
+    [persist],
+  );
+
   return {
     loaded,
     state,
@@ -146,6 +169,7 @@ export function useTournament(): UseTournament {
     resetMatches,
     clearTournament,
     updateMatch,
+    assignServer,
     replacePlayers,
     renamePlayers,
   };
