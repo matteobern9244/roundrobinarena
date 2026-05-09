@@ -87,6 +87,7 @@ function TournamentPage() {
             rounds={liveRounds}
             players={players}
             onScoreChange={handleScoreChange}
+            onAssignServer={assignServer}
           />
         )}
 
