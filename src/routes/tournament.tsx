@@ -199,10 +199,12 @@ function MatchesView({
   rounds,
   players,
   onScoreChange,
+  onAssignServer,
 }: {
   rounds: ReturnType<typeof rebuildLiveRounds>;
   players: string[];
   onScoreChange: (m: Match, field: "score1" | "score2", value: string) => void;
+  onAssignServer: (matchId: string, server: "p1" | "p2") => void;
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -236,7 +238,13 @@ function MatchesView({
             )}
 
             {ms.map((m) => (
-              <MatchRow key={m.id} match={m} players={players} onScoreChange={onScoreChange} />
+              <MatchRow
+                key={m.id}
+                match={m}
+                players={players}
+                onScoreChange={onScoreChange}
+                onAssignServer={onAssignServer}
+              />
             ))}
           </section>
         );
