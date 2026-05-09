@@ -17,7 +17,7 @@ export default defineConfig({
         strategies: "injectManifest",
         srcDir: "src",
         filename: "sw.ts",
-        registerType: "prompt",
+        registerType: "autoUpdate",
         injectRegister: false, // registriamo a mano in src/pwa-register.ts
         manifest: false, // ne serviamo uno nostro da public/manifest.webmanifest
         devOptions: {
