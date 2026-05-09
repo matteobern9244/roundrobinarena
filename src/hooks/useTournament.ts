@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   buildFreshMatches,
   DEFAULT_PLAYERS,
+  shufflePlayers,
   STORAGE_KEY,
   type Match,
   type TournamentState,
