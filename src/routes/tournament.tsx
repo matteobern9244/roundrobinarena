@@ -8,6 +8,8 @@ import {
   applyScoreUpdate,
   colorFor,
   computeStandings,
+  currentServer,
+  matchTotalPoints,
   MEDALS,
   rebuildLiveRounds,
   validatePlayers,
