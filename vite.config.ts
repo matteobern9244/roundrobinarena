@@ -11,11 +11,15 @@ export default defineConfig({
   vite: {
     plugins: [
       VitePWA({
-        registerType: "autoUpdate",
-        injectRegister: false, // we register manually in src/pwa-register.ts
-        // Don't generate a manifest — we ship our own at public/manifest.webmanifest
-        manifest: false,
-        // Disabled in dev to avoid stale-cache issues inside the Lovable editor preview.
+        // Custom Service Worker (injectManifest) — ci serve un fallback offline
+        // intelligente perché l'app è SSR su Cloudflare Workers e non esiste
+        // un /index.html statico da usare come navigateFallback.
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.ts",
+        registerType: "prompt",
+        injectRegister: false, // registriamo a mano in src/pwa-register.ts
+        manifest: false, // ne serviamo uno nostro da public/manifest.webmanifest
         devOptions: {
           enabled: false,
         },
@@ -27,46 +31,11 @@ export default defineConfig({
           "icon-512-maskable.png",
           "manifest.webmanifest",
         ],
-        workbox: {
-          // SPA fallback so deep links work offline.
-          navigateFallback: "/index.html",
-          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
-          cleanupOutdatedCaches: true,
-          clientsClaim: true,
-          skipWaiting: false,
-          globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff,woff2}"],
-          runtimeCaching: [
-            {
-              urlPattern: ({ request }) => request.mode === "navigate",
-              handler: "NetworkFirst",
-              options: {
-                cacheName: "html",
-                networkTimeoutSeconds: 3,
-                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 7 },
-              },
-            },
-            {
-              urlPattern: ({ request }) =>
-                request.destination === "script" ||
-                request.destination === "style" ||
-                request.destination === "worker",
-              handler: "StaleWhileRevalidate",
-              options: {
-                cacheName: "assets",
-                expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              },
-            },
-            {
-              urlPattern: ({ request }) =>
-                request.destination === "image" ||
-                request.destination === "font",
-              handler: "CacheFirst",
-              options: {
-                cacheName: "images-fonts",
-                expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              },
-            },
+        injectManifest: {
+          globPatterns: [
+            "**/*.{js,css,html,ico,png,svg,webp,woff,woff2,webmanifest}",
           ],
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         },
       }),
     ],
