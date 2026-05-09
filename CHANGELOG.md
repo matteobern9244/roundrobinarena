@@ -11,6 +11,24 @@ Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/) e la v
 
 ---
 
+## [0.6.0] — 2026-05-09
+
+### Added
+- **Supporto offline completo (PWA)** tramite `vite-plugin-pwa` + Workbox.
+  - Service Worker con `registerType: "autoUpdate"` che cachea HTML, JS, CSS, immagini, font e icone alla prima visita.
+  - Strategie di caching: `NetworkFirst` per le navigazioni HTML (timeout 3s), `StaleWhileRevalidate` per script/style, `CacheFirst` per immagini e font.
+  - SPA fallback (`navigateFallback: /index.html`) per far funzionare i deep link offline.
+  - Registrazione condizionale in `src/pwa-register.ts`: il SW NON parte dentro l'editor Lovable (iframe / host `id-preview--*` / `lovableproject.com`) ed eventuali SW residui vengono disattivati per mantenere fresca la preview.
+- **`OfflineBadge`** (`src/components/OfflineBadge.tsx`): badge neon "● OFFLINE" in alto al centro quando manca connessione, ascolta gli eventi `online` / `offline`.
+- **`UpdatePrompt`** (`src/components/UpdatePrompt.tsx`): toast neon in basso "⚡ Nuova versione disponibile · Aggiorna" mostrato quando Workbox segnala un nuovo SW pronto; il click applica `updateSW(true)` e ricarica.
+- `vite-plugin-pwa/client` aggiunto ai `types` di `tsconfig.json` per il modulo virtuale `virtual:pwa-register`.
+
+### Notes
+- Lo stato torneo era già 100% offline-capable (tutto in `localStorage` con chiave `pp-tournament-v1`): l'aggiornamento copre solo la disponibilità degli asset statici.
+- Il comportamento offline è verificabile **solo sul published URL** (`https://roundrobinarena.lovable.app`) o tramite Share Preview: nell'editor il SW è disabilitato di proposito.
+
+---
+
 ## [0.5.0] — 2026-04-27
 
 ### Added
