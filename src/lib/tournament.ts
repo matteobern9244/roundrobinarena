@@ -61,7 +61,7 @@ export type Standing = {
 const BYE = "__BYE__";
 
 /** Fisher-Yates shuffle — crea una copia mescolata casualmente. */
-function shuffle<T>(arr: T[]): T[] {
+export function shufflePlayers<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -71,15 +71,14 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 /**
- * Berger round-robin con supporto per N dispari (slot BYE).
- * L'ordine dei giocatori viene mescolato ad ogni chiamata, così i match
- * risultano diversi ogni volta pur mantenendo tutti-contro-tutti.
- * - N pari → N-1 turni, N/2 partite per turno, nessuno riposa.
- * - N dispari → N turni, (N-1)/2 partite per turno, un giocatore riposa per turno.
- * Totale partite sempre N*(N-1)/2.
+ * Berger round-robin DETERMINISTICO con supporto per N dispari (slot BYE).
+ * L'ordine dei giocatori in input determina i match: per avere accoppiamenti
+ * casuali, mescola la lista PRIMA di chiamare questa funzione (vedi
+ * `buildFreshMatches`) e persisti l'ordine mescolato — altrimenti gli ID
+ * dei match cambierebbero ad ogni render rompendo la persistenza dei punteggi.
  */
 export function generateRounds(players: string[]): Round[] {
-  const list = shuffle(players);
+  const list = [...players];
   if (list.length < 2) return [];
   if (list.length % 2 === 1) list.push(BYE);
 
