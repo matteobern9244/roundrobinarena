@@ -123,7 +123,6 @@ function Header({
   pct,
   tab,
   onTab,
-  onReset,
 }: {
   playersCount: number;
   done: number;
@@ -131,7 +130,6 @@ function Header({
   pct: number;
   tab: Tab;
   onTab: (t: Tab) => void;
-  onReset: () => void;
 }) {
   const tabs: { id: Tab; label: string }[] = [
     { id: "matches", label: "⚡ Partite" },
@@ -145,7 +143,7 @@ function Header({
       style={{ background: "var(--gradient-header)" }}
     >
       <div className="mx-auto max-w-3xl px-3 pt-3 sm:px-4 sm:pt-4">
-        {/* Riga 1: logo + titolo + reset compatto a destra */}
+        {/* Riga 1: logo + titolo + theme toggle */}
         <div className="mb-2 flex items-center gap-3">
           <span className="neon-logo text-2xl sm:text-3xl" aria-hidden>
             🏓
@@ -159,16 +157,6 @@ function Header({
             </p>
           </div>
           <ThemeToggle />
-          <button
-            type="button"
-            onClick={onReset}
-            aria-label="Reset torneo"
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
-          >
-            <span aria-hidden className="text-base">
-              ↺
-            </span>
-          </button>
         </div>
 
         {/* Riga 2: barra di progresso a tutta larghezza */}
