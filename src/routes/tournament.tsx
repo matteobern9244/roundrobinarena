@@ -55,10 +55,8 @@ function TournamentPage() {
     if (next) updateMatch(next);
   };
 
-  const handleReset = () => {
-    if (typeof window !== "undefined" && !window.confirm("Resettare il torneo?")) return;
-    resetMatches();
-  };
+
+
 
   const handleNewTournament = () => {
     if (
