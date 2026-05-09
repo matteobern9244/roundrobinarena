@@ -65,7 +65,8 @@ export function useTournament(): UseTournament {
 
   const startTournament = useCallback(
     (players: string[]) => {
-      const next: TournamentState = { players, matches: buildFreshMatches(players) };
+      const shuffled = shufflePlayers(players);
+      const next: TournamentState = { players: shuffled, matches: buildFreshMatches(shuffled) };
       setState(next);
       persist(next);
     },
