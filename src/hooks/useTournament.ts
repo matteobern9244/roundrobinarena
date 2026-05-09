@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   buildFreshMatches,
   DEFAULT_PLAYERS,
+  shufflePlayers,
   STORAGE_KEY,
   type Match,
   type TournamentState,
@@ -64,7 +65,8 @@ export function useTournament(): UseTournament {
 
   const startTournament = useCallback(
     (players: string[]) => {
-      const next: TournamentState = { players, matches: buildFreshMatches(players) };
+      const shuffled = shufflePlayers(players);
+      const next: TournamentState = { players: shuffled, matches: buildFreshMatches(shuffled) };
       setState(next);
       persist(next);
     },
@@ -106,7 +108,8 @@ export function useTournament(): UseTournament {
 
   const replacePlayers = useCallback(
     (players: string[]) => {
-      const next: TournamentState = { players, matches: buildFreshMatches(players) };
+      const shuffled = shufflePlayers(players);
+      const next: TournamentState = { players: shuffled, matches: buildFreshMatches(shuffled) };
       setState(next);
       persist(next);
     },
