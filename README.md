@@ -24,7 +24,7 @@ Web app per gestire un torneo di ping pong **all vs all** (round-robin) da 3 a 8
 - **Reset partite** (azzera i punteggi mantenendo la rosa) o **chiusura torneo** (torna al setup).
 - **Persistenza automatica** in `localStorage` (`pp-tournament-v1`) con flash "Salvato".
 - **Tema dual**: dark arcade (neon) + light arcade (colori vividi mantenuti). Default = sistema operativo. Toggle disponibile sia nel setup sia nell'header del torneo.
-- **PWA-ready**: manifest, icone, meta `apple-mobile-web-app`, viewport con safe-area per iPhone.
+- **PWA offline-first**: dopo il primo caricamento online l'app funziona **completamente offline** grazie a un Service Worker (Workbox via `vite-plugin-pwa`). Manifest, icone, meta `apple-mobile-web-app`, viewport con safe-area per iPhone. Badge "OFFLINE" in header e toast "Nuova versione disponibile" quando esce un aggiornamento. Il SW è disattivato dentro l'editor Lovable per evitare cache stantia: testabile sul published URL.
 - **Mobile-first**: layout pensato per 360–430px, scala fino a desktop senza modifiche.
 
 ---

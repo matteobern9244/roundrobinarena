@@ -92,12 +92,52 @@ Toggle UI: `src/components/ThemeToggle.tsx`. Presente sia in `/` (setup) sia in 
 
 **Regola**: non usare classi colore Tailwind dirette nei componenti. Sempre token semantici.
 
-## PWA
+## PWA & Offline
 
 - `public/manifest.webmanifest` (referenziato in `__root.tsx`).
-- Icone `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`, `favicon.ico`.
+- Icone `icon-192.png`, `icon-512.png`, `icon-512-maskable.png`, `apple-touch-icon.png`, `favicon.ico`.
 - Meta `apple-mobile-web-app-capable`, `mobile-web-app-capable`, status bar translucent.
 - Viewport con `viewport-fit=cover` per safe-area iPhone.
+
+### Service Worker (vite-plugin-pwa + Workbox)
+
+Configurato in `vite.config.ts` con `VitePWA`:
+
+| Risorsa | Strategia | Cache |
+|---------|-----------|-------|
+| Navigazioni HTML | `NetworkFirst` (timeout 3s) | `html` |
+| JS / CSS / Worker | `StaleWhileRevalidate` | `assets` |
+| Immagini / Font | `CacheFirst` (30 giorni) | `images-fonts` |
+
+- `navigateFallback: /index.html` → SPA offline-friendly anche su deep link.
+- `navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//]`.
+- `registerType: "autoUpdate"` + prompt manuale "Nuova versione disponibile".
+- `manifest: false` → si usa quello in `public/`.
+
+### Registrazione condizionale
+
+`src/pwa-register.ts` (`initPWA`) registra il SW **solo se**:
+
+- non siamo in iframe (editor Lovable);
+- l'hostname non è `id-preview--*` né `lovableproject.com`.
+
+In quei casi fa anche `unregister()` di eventuali SW residui per evitare cache stantia nella preview.
+
+### Componenti UI
+
+- `src/components/OfflineBadge.tsx` — badge fisso "● OFFLINE" via eventi `online`/`offline`.
+- `src/components/UpdatePrompt.tsx` — toast con bottone "Aggiorna" → `updateSW(true)` (skipWaiting + reload).
+
+Entrambi montati in `RootComponent` (`src/routes/__root.tsx`).
+
+### Test
+
+Il SW è **disabilitato** in dev e nel preview Lovable. Per verificare offline:
+
+1. Aprire il published URL (`https://roundrobinarena.lovable.app`).
+2. DevTools → Application → Service Workers (verifica registrazione).
+3. DevTools → Network → "Offline", ricarica.
+
 
 ## Build & deploy
 
