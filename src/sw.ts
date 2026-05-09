@@ -12,6 +12,10 @@ import { CacheableResponsePlugin } from "workbox-cacheable-response";
 
 declare const self: ServiceWorkerGlobalScope;
 
+const HTML_CACHE = "html-pages";
+const ASSET_CACHE = "assets";
+const IMG_CACHE = "images-fonts";
+
 // Precache statici (asset hashati prodotti dalla build)
 precacheAndRoute(self.__WB_MANIFEST || []);
 cleanupOutdatedCaches();
