@@ -1,5 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 
+import { OfflineBadge } from "@/components/OfflineBadge";
+import { UpdatePrompt } from "@/components/UpdatePrompt";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -94,5 +96,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <OfflineBadge />
+      <UpdatePrompt />
+    </>
+  );
 }
