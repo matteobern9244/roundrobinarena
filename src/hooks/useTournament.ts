@@ -41,6 +41,7 @@ export type UseTournament = {
   resetMatches: () => void;
   clearTournament: () => void;
   updateMatch: (next: Match) => void;
+  assignServer: (matchId: string, server: "p1" | "p2") => void;
   replacePlayers: (players: string[]) => void;
   renamePlayers: (oldNames: string[], newNames: string[]) => void;
 };
