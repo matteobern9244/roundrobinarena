@@ -1,45 +1,26 @@
-# Piano: offline completo e affidabile per tutta l’app
-
 ## Obiettivo
-Far funzionare davvero l’app senza rete, sia:
-- aprendo la PWA già offline
-- andando offline mentre l’app è aperta
-- rientrando nelle schermate principali senza nuove richieste di rete
 
-## Cosa cambierò
+Rimuovere il pulsante ↺ "reset torneo" dall'header della schermata torneo (non rimescola, è fuorviante) e confermare che le funzionalità chiave dell'app siano integre.
 
-### 1) Rendere offline la shell dell’app in modo deterministico
-- Sostituire il fallback HTML “opportunistico” del Service Worker con una shell offline esplicita e sempre disponibile.
-- Cacheare in modo affidabile la pagina principale e i file essenziali per l’avvio dell’app, così l’app non dipende da una fetch runtime a `/` che può fallire o arrivare troppo tardi.
-- Gestire correttamente le navigazioni in modalità standalone PWA e browser normale.
+## Cosa cambio
 
-### 2) Garantire offline anche il routing interno
-- Verificare e adattare la strategia di caching delle navigazioni TanStack Start, così la route `/tournament` continua a funzionare offline e non cade su schermo vuoto/nero.
-- Evitare che la route attiva dipenda da HTML o chunk non ancora presenti in cache.
-- Se necessario, aggiungere una strategia di preload/cache per i chunk critici delle route principali.
+### 1) Rimozione pulsante ↺ nell'header del torneo
+- File: `src/routes/tournament.tsx`
+- Tolgo dal componente `Header` il bottone ↺ e la prop `onReset`.
+- Tolgo da `TournamentPage` `resetMatches` e `handleReset` (non più usati).
+- Lascio intatto il blocco "Zona Pericolo" nella tab Giocatori con il bottone **🗑 Nuovo Torneo**, che già cancella tutto e riporta al setup (dove un nuovo avvio fa un nuovo sorteggio casuale).
+- Lascio comunque esportata `resetMatches` da `useTournament` (non costa nulla, può servire) — oppure la rimuovo se preferisci pulizia totale.
 
-### 3) Far partire l’app offline anche dopo il primo avvio online
-- Migliorare l’installazione/attivazione del Service Worker per pre-cache e warmup reali dei file indispensabili.
-- Eliminare i casi in cui il Service Worker è installato ma la shell non è ancora pronta quando l’utente chiude o perde connessione.
-- Verificare il flusso di update, così non resta una versione mezza cacheata.
-
-### 4) Proteggere l’esperienza in assenza di rete
-- Aggiungere un fallback UI chiaro quando il browser è offline ma manca ancora qualche risorsa locale, invece di finire in pagina nera.
-- Mantenere i dati torneo e tema completamente locali come già previsto, senza introdurre backend.
-- Controllare che non ci siano dipendenze residue dalla rete nelle schermate principali.
-
-### 5) Validare i casi reali d’uso offline
-Testerò i casi critici da coprire:
-- primo avvio online, poi refresh offline
-- apertura diretta della PWA offline
-- uso dell’app aperta mentre si perde la connessione
-- navigazione tra setup e torneo offline con dati già salvati
+### 2) Verifica funzionalità (solo controllo, nessuna modifica se già ok)
+- **Salvataggio punteggi**: `applyScoreUpdate` + `updateMatch` scrivono su `localStorage` (`pp-tournament-v1`) ad ogni cifra digitata. ID match stabili (alfabetici) → niente reset spurio.
+- **Creazione casuale**: `startTournament` chiama `shufflePlayers` (Fisher-Yates) prima di `buildFreshMatches`. L'ordine mescolato viene persistito, quindi gli ID match restano stabili tra i render.
+- **All vs All**: `generateRounds` usa l'algoritmo di Berger su lista mescolata → ogni giocatore incontra tutti gli altri esattamente una volta. Con N dispari uno riposa per turno (BYE).
+- **Modifica rosa**:
+  - Stessa lunghezza + soli rinomini → mantiene punteggi (`renamePlayers`).
+  - Cambio rosa effettivo → conferma + nuovo sorteggio casuale (`replacePlayers`).
+- **Persistenza tema** (`pp-theme`) e **offline PWA** restano come da fix precedenti.
 
 ## Risultato atteso
-Dopo la correzione, l’app dovrà aprirsi e restare utilizzabile offline in modo coerente, con classifica, partite, tema e stato torneo disponibili dal dispositivo anche senza connessione.
-
-## Dettagli tecnici
-- Revisione della config `vite-plugin-pwa` e del Service Worker custom.
-- Possibile introduzione di una vera offline shell/fallback cacheata esplicitamente.
-- Revisione del caching di HTML, asset hashati e chunk JS/CSS delle route principali.
-- Verifica del bootstrap client e del flusso di registrazione/aggiornamento del SW per evitare cache parziali o shell mancante.
+- Header torneo più pulito, senza pulsante che confondeva.
+- Per ricominciare da capo si usa **Giocatori → Nuovo Torneo**, che porta al setup e al successivo sorteggio davvero casuale.
+- Salvataggi e round-robin invariati e funzionanti.

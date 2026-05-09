@@ -27,7 +27,6 @@ function TournamentPage() {
     loaded,
     state,
     savedFlash,
-    resetMatches,
     updateMatch,
     replacePlayers,
     renamePlayers,
