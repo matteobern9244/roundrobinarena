@@ -2,10 +2,10 @@
 
 export const WIN_SCORE = 11;
 export const MIN_PLAYERS = 3;
-export const MAX_PLAYERS = 8;
+export const MAX_PLAYERS = 12;
 export const STORAGE_KEY = "pp-tournament-v1";
 
-// 8 colori predefiniti, assegnati per posizione nella rosa.
+// 12 colori predefiniti, assegnati per posizione nella rosa.
 export const PLAYER_COLORS = [
   "#ff6b35", // arancio
   "#00d9ff", // ciano
@@ -15,6 +15,10 @@ export const PLAYER_COLORS = [
   "#bf7fff", // viola
   "#ffb085", // rosa pesca
   "#85d8ff", // azzurro ghiaccio
+  "#ff4d4d", // rosso vivo
+  "#39ff14", // verde neon
+  "#ff00ff", // fucsia
+  "#00ffff", // ciano brillante
 ];
 
 export const MEDALS = ["🥇", "🥈", "🥉"];
