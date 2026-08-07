@@ -1,12 +1,14 @@
 /**
  * Service Worker registration. Client-only.
  *
- * Skipped automatically when:
- *  - we are running inside an iframe (Lovable editor preview)
- *  - we are on a Lovable preview/editor host
+ * Skipped automatically quando:
+ *  - non siamo in build di produzione
+ *  - siamo dentro un iframe (preview dell'editor Lovable)
+ *  - siamo su un host di preview/editor Lovable
+ *  - l'URL contiene ?sw=off (kill switch)
  *
- * Existing service workers in those contexts are unregistered to avoid stale
- * caches polluting the editor.
+ * Nei contesti bloccati i Service Worker esistenti vengono deregistrati per
+ * evitare che cache stantie inquinino la preview.
  */
 
 let initialized = false;
@@ -16,6 +18,29 @@ export type PwaCallbacks = {
   onOfflineReady?: () => void;
 };
 
+function isPreviewHost(host: string): boolean {
+  return (
+    host.startsWith("id-preview--") ||
+    host.startsWith("preview--") ||
+    host === "lovableproject.com" ||
+    host.endsWith(".lovableproject.com") ||
+    host === "lovableproject-dev.com" ||
+    host.endsWith(".lovableproject-dev.com") ||
+    host === "beta.lovable.dev" ||
+    host.endsWith(".beta.lovable.dev")
+  );
+}
+
+async function unregisterAll(): Promise<void> {
+  if (!("serviceWorker" in navigator)) return;
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map((r) => r.unregister()));
+  } catch (err) {
+    console.warn("[pwa] unregister failed", err);
+  }
+}
+
 /** Returns a function to trigger update + reload, or null if SW disabled. */
 export async function initPWA(
   cbs: PwaCallbacks = {},
@@ -24,7 +49,6 @@ export async function initPWA(
   if (initialized) return null;
   initialized = true;
 
-  // Detect iframe
   let inIframe = false;
   try {
     inIframe = window.self !== window.top;
@@ -33,19 +57,10 @@ export async function initPWA(
   }
 
   const host = window.location.hostname;
-  const isPreviewHost =
-    host.includes("id-preview--") || host.includes("lovableproject.com");
+  const killSwitch = new URLSearchParams(window.location.search).get("sw") === "off";
 
-  if (inIframe || isPreviewHost) {
-    // Cleanup any leftover SW so the editor preview stays fresh.
-    if ("serviceWorker" in navigator) {
-      try {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map((r) => r.unregister()));
-      } catch {
-        /* ignore */
-      }
-    }
+  if (!import.meta.env.PROD || inIframe || isPreviewHost(host) || killSwitch) {
+    await unregisterAll();
     return null;
   }
 
@@ -59,9 +74,13 @@ export async function initPWA(
       onOfflineReady() {
         cbs.onOfflineReady?.();
       },
+      onRegisterError(error) {
+        console.error("[pwa] service worker registration failed", error);
+      },
     });
     return updateSW;
-  } catch {
+  } catch (err) {
+    console.error("[pwa] service worker bootstrap failed", err);
     return null;
   }
 }
