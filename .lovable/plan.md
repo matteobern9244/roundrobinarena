@@ -1,93 +1,53 @@
-## Obiettivo
+# Obiettivo
 
-Mostrare in tempo reale una pallina 🏓 accanto al giocatore al servizio. La regola corretta è:
+L'app deve funzionare offline in modo affidabile: apertura da icona senza rete, refresh offline, navigazione tra setup e torneo, inserimento punteggi. Zero regressioni su logiche esistenti (round-robin, punteggi, classifica, tema, palla del servizio).
 
-1. **A inizio match** (0–0) nessuno ha ancora la palla. Si gioca un punto "fittizio" **non conteggiato**: vince chi prende la palla.
-2. **Sono io (utente) ad assegnare manualmente la palla** al giocatore vincitore di quel punto fittizio, toccando un segnalino 🏓 nel suo lato.
-3. **Da quel momento** il punteggio resta 0–0 e si comincia a contare. Ogni **5 punti totali** la palla cambia mano in automatico.
-4. Posso cambiare idea finché il punteggio è 0–0 (ad es. tap sull'altro lato sposta la palla). Una volta che parte il punteggio reale, l'assegnazione è "congelata" e da lì regola dei 5 punti.
-5. Quando il match finisce (`winner`), la pallina sparisce e resta solo il 🏆.
+## Cosa ho verificato adesso
 
-## Modello dati
+- L'app non fa **nessuna** chiamata di rete a runtime: gli unici `fetch` del progetto sono dentro `src/sw.ts`. Tutti i dati stanno in `localStorage` (`pp-tournament-v1`, `pp-theme`). Quindi il problema offline non è nei dati, è solo nel **bootstrap dell'app** (HTML + chunk JS/CSS).
+- L'app è SSR su Cloudflare Workers (`wrangler.jsonc` → `@tanstack/react-start/server-entry`): non esiste un `index.html` statico. Ogni navigazione a freddo richiede una risposta HTML dal Worker → offline serve una HTML in cache.
+- Esiste già un Service Worker custom (`src/sw.ts`, strategia `injectManifest`) che al momento dell'install prova a pre-scaricare `/` e `/tournament` con gli asset referenziati, più registrazione manuale in `src/pwa-register.ts`.
+- Non c'è nessuna build presente nel workspace, quindi **non ho potuto verificare** se `sw.js` viene realmente emesso e servito come asset statico dal deploy Cloudflare. Questa è la causa candidata numero uno del fallimento (registrazione che va in `catch` silenzioso e nessun SW attivo), ma è **non confermata**: verificarla è il primo passo del piano, non un'assunzione.
 
-Aggiungo a `Match` un campo opzionale:
+## Diagnosi non confermata (da verificare per prima cosa)
 
-```ts
-firstServer: "p1" | "p2" | null;  // chi ha vinto il punto fittizio iniziale
-```
+Ipotesi in ordine di probabilità:
 
-Persistito in `localStorage` come tutto il resto (`pp-tournament-v1`). Retro-compatibile: i match esistenti partono con `firstServer: null`.
+1. `sw.js` non finisce tra gli asset client serviti dal Worker → `/sw.js` risponde HTML/404 → `registerSW` fallisce e `src/pwa-register.ts` inghiotte l'errore in un `catch {}` vuoto.
+2. Il SW si registra ma il pre-fetch della shell all'install fallisce parzialmente (asset hashati mancanti) → HTML in cache senza i suoi chunk → schermo nero.
+3. La guardia host in `pwa-register.ts` controlla `id-preview--` e `lovableproject.com` ma non `.lovable.app`: sul published funziona, ma i test fatti dentro l'editor non registrano nulla — possibile falso negativo nei test precedenti.
 
-## Logica del segnalino
+## Passo 1 — Verifica (nessuna modifica di codice)
 
-Helper puro in `src/lib/tournament.ts`:
+- Eseguire una build di produzione e ispezionare gli asset client: `sw.js` presente? contiene il manifest di precache? quali file sono elencati?
+- Verificare il routing degli asset statici del Worker per `/sw.js` e `/manifest.webmanifest` (content-type e status corretti).
+- Servire la build in locale e testare con Playwright: registrazione SW, contenuto delle Cache Storage, poi `context.set_offline(True)` + reload su `/` e su `/tournament`.
 
-```ts
-export const SERVE_SWITCH_EVERY = 5;
+Solo dopo questa verifica si applica il fix corrispondente. Se la causa risulta diversa dalle tre ipotesi, si aggiorna il piano.
 
-export function currentServer(match: Match): "p1" | "p2" | null {
-  if (match.winner) return null;
-  if (!match.firstServer) return null;
-  const s1 = parseInt(match.score1, 10);
-  const s2 = parseInt(match.score2, 10);
-  const total = (Number.isNaN(s1) ? 0 : s1) + (Number.isNaN(s2) ? 0 : s2);
-  const switches = Math.floor(total / SERVE_SWITCH_EVERY);
-  return switches % 2 === 0
-    ? match.firstServer
-    : match.firstServer === "p1" ? "p2" : "p1";
-}
-```
+## Passo 2 — Fix del bootstrap offline
 
-Funzione di assegnazione/cambio (chiamata solo a 0–0):
+Interventi previsti, tutti confinati a `src/sw.ts`, `src/pwa-register.ts`, `vite.config.ts`:
 
-```ts
-export function setFirstServer(match: Match, server: "p1" | "p2" | null): Match {
-  return { ...match, firstServer: server };
-}
-```
+- **Emissione garantita**: assicurare che `sw.js` sia emesso nella root degli asset client e servito con `Content-Type: application/javascript` e scope `/`. Se l'output PWA non finisce dove il Worker serve gli statici, correggere la configurazione `VitePWA` (cartella di output) invece di aggirare il problema.
+- **Precache atomico e affidabile**: invece del parsing HTML best-effort attuale, usare il manifest generato dalla build (`self.__WB_MANIFEST`) come fonte di verità per JS/CSS/font/icone, e mantenere il fetch attivo della **shell HTML** di `/` e `/tournament` come unica parte non coperta dal manifest. Se il precache degli asset fallisce, il SW non deve considerarsi installato con successo per la parte shell.
+- **Navigazioni**: `NetworkFirst` con timeout breve e fallback su qualunque HTML in cache (già presente, da mantenere), con esclusione di `/api/` e `/~oauth`.
+- **Errori visibili**: sostituire i `catch {}` silenziosi in `pwa-register.ts` con log espliciti in console, così un fallimento futuro è diagnosticabile invece di invisibile.
+- **Guardie preview**: estendere il blocco alla famiglia `lovable.app`/`lovableproject-dev.com`/`beta.lovable.dev` e al kill switch `?sw=off`, con unregister dei SW residui nei contesti bloccati. Il SW resta attivo solo sul published.
 
-## UI: `MatchRow` in `src/routes/tournament.tsx`
+## Passo 3 — Verifica anti-regressione
 
-- Calcolo `total = score1 + score2` (numerici).
-- Calcolo `server = currentServer(match)`.
-- **Stato A — match non iniziato** (`!winner && total === 0`):
-  - Su entrambi i lati mostro un piccolo bottone 🏓 (touch ≥40×40):
-    - Lato del `firstServer` corrente → pieno/illuminato (`neon-cyan` glow).
-    - Lato opposto → outline tenue, "tap to assign".
-  - Tap su un lato: chiama `onAssignServer(match, "p1" | "p2")` → aggiorna lo state via nuova azione hook (vedi sotto). Tap di nuovo sullo stesso lato: nessun cambio (idempotente). Per "togliere" non serve flusso esplicito (basta non assegnare).
-  - Hint testuale piccolo sotto il match: "Assegna la palla al vincitore del primo scambio" (solo finché `firstServer === null`).
-- **Stato B — match in corso** (`total > 0 && !winner`):
-  - Mostro la 🏓 fissa accanto al nome del `server` (lato sinistro o destro a seconda).
-  - I bottoni di assegnazione spariscono: la palla ora segue la regola dei 5 punti.
-- **Stato C — match finito**: nessuna pallina, solo 🏆 sul vincitore.
-
-Posizionamento icona: dentro `.player-side`, tra dot e nome (sx) o tra nome e dot (dx). `aria-label="Al servizio"` o `"Assegna la palla a {nome}"`.
-
-## Hook `useTournament`
-
-Aggiungo un'azione:
-
-```ts
-assignServer: (matchId: string, server: "p1" | "p2") => void;
-```
-
-Implementazione: aggiorna il match nel state solo se `score1`/`score2` sono entrambi vuoti/0 e non c'è winner (guardia di sicurezza), poi `persist`. In questo modo non si può "barare" cambiando il server a metà match.
-
-## Stile (`src/styles.css`)
-
-Aggiungo classi minimali:
-- `.serve-ball` → emoji un po' più grande, `drop-shadow` con `--neon-cyan`, `transition` su transform/opacity.
-- `.serve-assign-btn` → bottone tondo 40×40, bordo `border-border`, hover `bg-accent`, stato attivo con glow `--neon-cyan`. Solo token semantici, niente colori hardcoded.
-- Animazione di apparizione: `animate-fade-in` esistente.
+- Online: setup rosa 2–12 giocatori, avvio torneo, inserimento punteggi, classifica live, assegnazione palla 🏓, toggle tema, "Nuovo Torneo".
+- Offline (Playwright su build di produzione locale): reload a freddo su `/` e su `/tournament`, navigazione tra le due, inserimento punteggio e persistenza dopo reload offline.
+- Secondo carico offline dopo un aggiornamento di versione (verifica che la cache vecchia non serva chunk inesistenti).
+- Confronto visivo dark e light per escludere regressioni di stile.
 
 ## Cosa NON cambia
 
-- Punteggi, vincitore, classifica, round-robin, shuffle, validazioni, persistenza generale.
-- Nessuna nuova chiave `localStorage`: il `firstServer` viaggia dentro `Match`.
-- Nessun impatto su match già esistenti: partono semplicemente senza segnalino e l'utente lo assegna come per i nuovi.
+- Nessuna modifica a `src/lib/tournament.ts`, `src/hooks/useTournament.ts`, `src/routes/index.tsx`, `src/routes/tournament.tsx`, componenti UI, stili, chiavi `localStorage`.
+- Nessun cambio di framework o router, nessuna conversione a SPA statica.
+- `public/manifest.webmanifest` invariato (`start_url`/`scope`/`display` restano identici: cambiarli richiederebbe la reinstallazione della PWA agli utenti già installati).
 
-## Risultato atteso
+## Nota pratica
 
-- Match nuovo: a 0–0 vedo due segnalini 🏓 (uno per lato), tappabili. Tap → quel giocatore "ha la palla". Posso cambiare idea finché siamo a 0–0.
-- Appena il punteggio diventa diverso da 0–0, i bottoni spariscono e la 🏓 segue la regola: cambia lato ogni 5 punti totali.
-- Match finito: pallina via, 🏆 sul vincitore.
+Offline non è testabile dentro l'editor Lovable (il SW è volutamente disattivato in iframe/preview per non servire cache stantia). La verifica finale va fatta sulla build di produzione locale e poi sul published URL.
