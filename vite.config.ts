@@ -17,20 +17,18 @@ export default defineConfig({
         strategies: "injectManifest",
         srcDir: "src",
         filename: "sw.ts",
+        // IMPORTANTE: gli asset statici serviti dal Worker vivono in dist/client.
+        // Senza questo, sw.js finisce in dist/sw.js e /sw.js risponde 404 →
+        // nessun Service Worker registrato → app nera offline.
+        outDir: "dist/client",
         registerType: "autoUpdate",
         injectRegister: false, // registriamo a mano in src/pwa-register.ts
         manifest: false, // ne serviamo uno nostro da public/manifest.webmanifest
         devOptions: {
           enabled: false,
         },
-        includeAssets: [
-          "favicon.ico",
-          "apple-touch-icon.png",
-          "icon-192.png",
-          "icon-512.png",
-          "icon-512-maskable.png",
-          "manifest.webmanifest",
-        ],
+        // Niente includeAssets: le icone e il manifest sono già coperti da
+        // globPatterns e duplicarli genererebbe entry in conflitto nel precache.
         injectManifest: {
           globPatterns: [
             "**/*.{js,css,html,ico,png,svg,webp,woff,woff2,webmanifest}",
