@@ -1,6 +1,6 @@
 # Piano — Migrazione da Lovable a Vercel e tech refresh
 
-Data: 2026-11-19 · Branch di lavoro: `develop` · Stato: **approvato (default D1–D6) e in esecuzione** — vedi "Esecuzione" in fondo
+Data: 2026-11-19 · Branch di lavoro: `develop` · Stato: **completato** (default D1–D6) — vedi "Esecuzione" in fondo
 
 Obiettivo: portare Round Robin Arena da Lovable (Cloudflare Workers) a Vercel, aggiornare tutte le
 dipendenze all'ultima versione compatibile e fissare Node.js all'ultima LTS (**26.x**, oggi 26.13.1).
@@ -223,7 +223,21 @@ repository, deploy di produzione e prove sul simulatore iOS: ognuno solo su rich
 
 ## 6. Esecuzione (2026-11-19)
 
-Fasi 0, 1, 2, 4 e 5 completate in locale su `develop`; fasi 3 e 6 seguono.
+Tutte le fasi completate. Produzione: <https://roundrobinarena.vercel.app> (progetto Vercel
+`roundrobinarena`, Node 26.x, framework TanStack Start, production branch `main`).
+
+Verifiche:
+
+- Locale (`node .output/server/index.mjs`): SW attivo, precache 13 voci, avvio torneo,
+  punteggio salvato e ripristinato dopo il reload, tema chiaro persistente, `/` e `/tournament`
+  aperti dalla cache a server spento.
+- Vercel: build con runtime `nodejs26.x` e preset `vercel`; in produzione `/sw.js` 200
+  (`cache-control: public, max-age=0, must-revalidate`), SW attivo, precache 13 voci, shell HTML
+  in cache, `/tournament` 200, rotta inesistente 404, layout mobile 375px corretto.
+- Protezione Vercel impostata su "Standard" (`prod_deployment_urls_and_all_previews`): il dominio
+  di produzione è pubblico, preview e URL dei singoli deploy richiedono il login Vercel.
+- Il primo deploy, creato via API da `develop`, è stato assegnato alla produzione; `main` è stato
+  poi portato in fast-forward sullo stesso commit e ridistribuito.
 
 Scostamenti dal piano:
 
@@ -236,6 +250,7 @@ Scostamenti dal piano:
   `.output/public`). Soluzione in `vite.config.ts`, descritta in `docs/architecture.md`.
 - **Correzioni richieste dalle nuove regole di lint:** `useTournament`, `useTheme`,
   `OfflineBadge`, `pwa-register.ts`; componente d'errore del router per TanStack Router recente.
+- **Non verificato:** offline su iPhone reale o simulatore iOS (solo su richiesta).
 - **Avvisi accettati:** `react-refresh/only-export-components` sui file di rotta (13) e su
   `src/router.tsx`; 4 vulnerabilità moderate di `npm audit` in `glob`/`minimatch`, solo build-time
   tramite `workbox-build`, senza correzione compatibile a monte.
