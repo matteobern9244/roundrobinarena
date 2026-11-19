@@ -63,21 +63,6 @@ export const Route = createRootRoute({
       { name: "twitter:card", content: "summary" },
       { name: "twitter:image", content: "/icon-512.png" },
       { name: "twitter:title", content: "Ping Pong Tournament — All vs All" },
-      {
-        name: "description",
-        content:
-          "Round Robin Arena manages tournament brackets and standings for configurable player counts.",
-      },
-      {
-        property: "og:description",
-        content:
-          "Round Robin Arena manages tournament brackets and standings for configurable player counts.",
-      },
-      {
-        name: "twitter:description",
-        content:
-          "Round Robin Arena manages tournament brackets and standings for configurable player counts.",
-      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
