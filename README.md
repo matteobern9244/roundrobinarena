@@ -47,10 +47,15 @@ Nessun backend richiesto: tutto avviene client-side, l'SSR produce solo l'HTML i
 ```
 src/
 ├── routes/
-│   ├── __root.tsx          # Shell HTML, head meta, PWA, anti-FOUC theme script
-│   ├── index.tsx           # Setup torneo (selezione giocatori)
-│   └── tournament.tsx      # Pagina torneo: tab Partite / Classifica / Giocatori
+│   ├── __root.tsx          # Root route: head meta, PWA, link
+│   ├── index.tsx           # Route "/" → SetupPage
+│   └── tournament.tsx      # Route "/tournament" → TournamentPage
 ├── components/
+│   ├── RootLayout.tsx      # Shell HTML + layout comune (badge offline, prompt aggiornamento)
+│   ├── NotFoundComponent.tsx # Pagina 404
+│   ├── DefaultErrorComponent.tsx # Pagina d'errore del router
+│   ├── setup/SetupPage.tsx # Setup torneo (selezione giocatori)
+│   ├── tournament/TournamentPage.tsx # Pagina torneo: tab Partite / Classifica / Giocatori
 │   ├── PlayersEditor.tsx   # Editor rosa (3-12 giocatori, validazione)
 │   ├── ThemeToggle.tsx     # Toggle tema sistema/dark/light
 │   ├── OfflineBadge.tsx    # Badge "OFFLINE"
@@ -104,7 +109,7 @@ Token `oklch` in `src/styles.css`. Stati gestiti:
 - `dark`: dark arcade neon (default storico).
 - `light`: light arcade — mantiene i colori vividi neon.
 
-La preferenza è salvata in `localStorage` come `pp-theme`. Uno script blocking inline in `__root.tsx` previene il FOUC al primo paint.
+La preferenza è salvata in `localStorage` come `pp-theme`. Non c'è uno script anti-FOUC: il markup SSR parte con `<html class="dark">` e il tema salvato si applica subito dopo l'idratazione, quindi con il tema chiaro c'è un breve passaggio dal tema scuro.
 
 ---
 

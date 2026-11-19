@@ -251,7 +251,7 @@ Scostamenti dal piano:
 - **Correzioni richieste dalle nuove regole di lint:** `useTournament`, `useTheme`,
   `OfflineBadge`, `pwa-register.ts`; componente d'errore del router per TanStack Router recente.
 - **Non verificato:** offline su iPhone reale o simulatore iOS (solo su richiesta).
-- **Avvisi accettati:** `react-refresh/only-export-components` sui file di rotta (13) e su
+- **Avvisi accettati (poi risolti, vedi CHANGELOG):** `react-refresh/only-export-components` sui file di rotta (13) e su
   `src/router.tsx`; 4 vulnerabilità moderate di `npm audit` in `glob`/`minimatch`, solo build-time
   tramite `workbox-build`, senza correzione compatibile a monte.
 - **`.lovable/`** archiviata in `docs/archivio/`.

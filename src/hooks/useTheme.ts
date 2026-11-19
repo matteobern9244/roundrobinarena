@@ -64,8 +64,8 @@ export type UseThemeResult = {
 /**
  * Gestione tema: legge preferenza salvata o di sistema, applica la classe
  * `dark` su <html>, sincronizza il meta `theme-color`. SSR-safe: durante
- * l'idratazione restituisce "dark" come default ottimistico (lo script
- * inline in __root.tsx evita il flash visivo).
+ * l'idratazione restituisce "dark", lo stesso tema del markup SSR
+ * (`<html class="dark">` in RootShell).
  */
 export function useTheme(): UseThemeResult {
   // SSR-safe: parto sempre dai default per evitare hydration mismatch.
@@ -82,8 +82,8 @@ export function useTheme(): UseThemeResult {
   const systemDark = useSyncExternalStore(subscribeSystemTheme, systemPrefersDark, () => true);
   const theme = resolveTheme(mode, systemDark);
 
-  // Applica il tema su DOM solo dopo aver letto la preferenza reale: prima lo
-  // script inline in __root.tsx ha già impostato la classe giusta.
+  // Applica il tema su DOM solo dopo aver letto la preferenza reale: fino ad
+  // allora resta la classe `dark` del markup SSR.
   useEffect(() => {
     if (synced) applyTheme(theme);
   }, [synced, theme]);

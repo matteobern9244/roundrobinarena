@@ -36,7 +36,9 @@ node .output/server/index.mjs      # prova la build di produzione su http://loca
 - `src/lib/tournament.ts` — dominio: algoritmo di Berger, classifica, punteggi (test accanto).
 - `src/hooks/useTournament.ts`, `src/hooks/useTheme.ts`, `src/hooks/useHydrated.ts` — stato e
   lettura di API browser dopo l'idratazione.
-- `src/routes/` — `__root.tsx` (shell HTML, meta, script anti-FOUC), `index.tsx`, `tournament.tsx`.
+- `src/routes/` — solo definizioni `Route` (`__root.tsx` con meta e link, `index.tsx`, `tournament.tsx`);
+  i componenti delle pagine stanno in `src/components/` (`RootLayout`, `NotFoundComponent`,
+  `setup/SetupPage`, `tournament/TournamentPage`).
 - `src/sw.ts`, `src/pwa-register.ts` — Service Worker e registrazione.
 - `vite.config.ts` — integrazione Nitro + PWA (leggere i commenti prima di toccarla).
 - Documentazione: `docs/architecture.md`, `docs/tournament-logic.md`, `CHANGELOG.md`.
@@ -52,7 +54,7 @@ node .output/server/index.mjs      # prova la build di produzione su http://loca
   `~6.0` finché typescript-eslint non supporta la 7; `nitro` è in rc e resta a versione esatta.
 - **Verifica:** le modifiche visibili si provano nel browser; il layout mobile in emulazione
   (360–430px). Simulatore iOS solo su richiesta di Matteo.
-- **Avvisi di lint noti:** `react-refresh/only-export-components` sui file di rotta e su
-  `src/router.tsx` (componenti definiti accanto all'export `Route`/`getRouter`).
+- **Lint pulito:** zero errori e zero avvisi. I file in `src/routes/` esportano solo `Route`; i
+  componenti vanno in `src/components/` (regola `react-refresh/only-export-components`).
 - Commit, push, merge su `main` e deploy di produzione solo su richiesta esplicita.
 - Documenti (`README.md`, `docs/`, `CHANGELOG.md`, questo file) aggiornati insieme al codice.

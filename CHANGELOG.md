@@ -25,6 +25,8 @@ Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/) e la v
 ### Fixed
 - Testi allineati al limite reale di 12 giocatori (`MAX_PLAYERS`): meta description, README e `docs/tournament-logic.md` indicavano ancora 3–8.
 - Rimosso da `__root.tsx` un secondo blocco di meta tag in inglese (description, og:description, twitter:description) che sovrascriveva le descrizioni italiane.
+- Lint senza avvisi: i componenti delle pagine escono dai file di rotta (`src/components/RootLayout.tsx`, `NotFoundComponent.tsx`, `setup/SetupPage.tsx`, `tournament/TournamentPage.tsx`) e `DefaultErrorComponent` esce da `src/router.tsx`.
+- Documentazione corretta: lo script anti-FOUC del tema citato in README e `docs/architecture.md` non esiste più nel codice.
 
 ### Notes
 - Il nuovo dominio è un'origine diversa: i tornei salvati su `roundrobinarena.lovable.app` non vengono trasferiti e la PWA installata dal vecchio indirizzo va reinstallata.

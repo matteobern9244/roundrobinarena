@@ -25,9 +25,11 @@ produrre l'HTML iniziale: lo stato vive interamente nel browser.
 
 File-based routing in `src/routes/`:
 
-- `__root.tsx` — root layout. Definisce `<html>`, `<head>` (meta SEO, OG, manifest PWA, icone, viewport con safe-area, script anti-FOUC del tema) e `<body>`. Espone anche il `notFoundComponent`.
-- `index.tsx` — `/` setup torneo. Se trova uno stato salvato in `localStorage`, fa redirect automatico a `/tournament`.
-- `tournament.tsx` — `/tournament` torneo attivo, con tab interne (Partite, Classifica, Giocatori).
+- `__root.tsx` — root route: meta SEO, OG, manifest PWA, icone, viewport con safe-area. Usa `RootShell` (documento `<html>`), `RootComponent` (layout) e `NotFoundComponent` da `src/components/`.
+- `index.tsx` — `/` setup torneo (`SetupPage`). Se trova uno stato salvato in `localStorage`, fa redirect automatico a `/tournament`.
+- `tournament.tsx` — `/tournament` torneo attivo (`TournamentPage`), con tab interne (Partite, Classifica, Giocatori).
+
+I file di rotta esportano solo `Route`; i componenti delle pagine stanno in `src/components/`, così Fast Refresh funziona e il lint resta senza avvisi.
 
 Il file `src/routeTree.gen.ts` è auto-generato dal plugin Vite — non modificare a mano.
 
@@ -80,7 +82,7 @@ Hook `useTheme` (`src/hooks/useTheme.ts`):
 - Persistenza in `localStorage` come `pp-theme`.
 - Inizializzazione SSR-safe: parte sempre con default `system / dark`, poi sincronizza dopo idratazione per evitare "null is not an object" su mobile.
 
-Anti-FOUC: uno script blocking inline in `__root.tsx` legge `pp-theme` e applica la classe `dark` su `<html>` prima del primo paint.
+Non c'è uno script anti-FOUC: il markup SSR parte con `<html class="dark">` e il tema salvato si applica subito dopo l'idratazione, quindi con il tema chiaro c'è un breve passaggio dal tema scuro.
 
 Toggle UI: `src/components/ThemeToggle.tsx`. Presente sia in `/` (setup) sia in `/tournament` (header).
 
@@ -149,7 +151,7 @@ l'offline prima del rilascio. Nei contesti esclusi fa `unregister()` di eventual
 - `src/components/OfflineBadge.tsx` — badge fisso "● OFFLINE" via eventi `online`/`offline`.
 - `src/components/UpdatePrompt.tsx` — toast con bottone "Aggiorna" → `updateSW(true)` (skipWaiting + reload).
 
-Entrambi montati in `RootComponent` (`src/routes/__root.tsx`).
+Entrambi montati in `RootComponent` (`src/components/RootLayout.tsx`).
 
 ### Test
 
