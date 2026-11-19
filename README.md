@@ -1,6 +1,6 @@
 # 🏓 Round Robin Arena — Ping Pong Tournament
 
-Web app per gestire un torneo di ping pong **all vs all** (round-robin) da 3 a 8 giocatori, con classifica live, gestione automatica dei numeri dispari (turno di riposo) e tema arcade neon dark/light.
+Web app per gestire un torneo di ping pong **all vs all** (round-robin) da 3 a 12 giocatori, con classifica live, gestione automatica dei numeri dispari (turno di riposo) e tema arcade neon dark/light.
 
 > Tutto gira nel browser. Nessun account, nessun backend: i dati restano in `localStorage` sul tuo dispositivo.
 
@@ -10,7 +10,7 @@ Web app per gestire un torneo di ping pong **all vs all** (round-robin) da 3 a 8
 
 ## ✨ Features
 
-- **Setup torneo** con 3–8 giocatori (default: 6 nomi precompilati, modificabili).
+- **Setup torneo** con 3–12 giocatori (default: 6 nomi precompilati, modificabili).
 - **Generazione round-robin** automatica con algoritmo di Berger:
   - N pari → `N-1` turni, `N/2` partite per turno, nessuno riposa.
   - N dispari → `N` turni, `(N-1)/2` partite per turno, **un giocatore riposa** ogni turno.
@@ -51,7 +51,7 @@ src/
 │   ├── index.tsx           # Setup torneo (selezione giocatori)
 │   └── tournament.tsx      # Pagina torneo: tab Partite / Classifica / Giocatori
 ├── components/
-│   ├── PlayersEditor.tsx   # Editor rosa (3-8 giocatori, validazione)
+│   ├── PlayersEditor.tsx   # Editor rosa (3-12 giocatori, validazione)
 │   ├── ThemeToggle.tsx     # Toggle tema sistema/dark/light
 │   ├── OfflineBadge.tsx    # Badge "OFFLINE"
 │   └── UpdatePrompt.tsx    # Toast "Nuova versione disponibile"
@@ -86,7 +86,7 @@ npm run format
 
 ## 🎮 Come usare l'app
 
-1. **Setup**: scegli 3–8 giocatori (puoi rinominarli, aggiungerli o rimuoverli). Vedi anteprima turni/partite.
+1. **Setup**: scegli 3–12 giocatori (puoi rinominarli, aggiungerli o rimuoverli). Vedi anteprima turni/partite.
 2. **Avvia torneo** → vai alla pagina `/tournament`.
 3. **Tab Partite**: inserisci i punteggi (0–11) per ogni match. Il vincitore (e la classifica) si aggiorna istantaneamente.
 4. **Tab Classifica**: tabella compatta + griglia 2-colonne con card colorate per giocatore, barra win-rate, medaglia per la prima posizione.

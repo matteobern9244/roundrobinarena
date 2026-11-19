@@ -8,7 +8,7 @@ Documenta le regole e gli algoritmi implementati in `src/lib/tournament.ts`.
 |----------|--------|-------------|
 | `WIN_SCORE` | `11` | Punteggio per vincere un match (set secco). |
 | `MIN_PLAYERS` | `3` | Minimo giocatori per avviare un torneo. |
-| `MAX_PLAYERS` | `8` | Massimo giocatori. |
+| `MAX_PLAYERS` | `12` | Massimo giocatori. |
 | `STORAGE_KEY` | `"pp-tournament-v1"` | Chiave `localStorage`. |
 | `PLAYER_COLORS` | 8 colori HEX | Assegnati per posizione nella rosa. |
 

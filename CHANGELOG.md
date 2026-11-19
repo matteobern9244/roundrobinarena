@@ -22,6 +22,9 @@ Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/) e la v
 ### Removed
 - 48 componenti shadcn/ui inutilizzati (`src/components/ui/`), `src/hooks/use-mobile.tsx` e circa 40 dipendenze collegate (Radix UI, zod, recharts, react-hook-form, date-fns, ecc.).
 
+### Fixed
+- Testi allineati al limite reale di 12 giocatori (`MAX_PLAYERS`): meta description, README e `docs/tournament-logic.md` indicavano ancora 3–8.
+
 ### Notes
 - Il nuovo dominio è un'origine diversa: i tornei salvati su `roundrobinarena.lovable.app` non vengono trasferiti e la PWA installata dal vecchio indirizzo va reinstallata.
 

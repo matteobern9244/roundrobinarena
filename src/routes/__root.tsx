@@ -39,7 +39,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Gestisci un torneo di ping pong all vs all con 3-8 giocatori configurabili, classifica live e salvataggio automatico.",
+          "Gestisci un torneo di ping pong all vs all con 3-12 giocatori configurabili, classifica live e salvataggio automatico.",
       },
       // PWA / theming
       { name: "theme-color", content: "#0a0a14" },
