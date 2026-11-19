@@ -1,5 +1,4 @@
 /// <reference lib="webworker" />
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 import { registerRoute, setCatchHandler } from "workbox-routing";
 import { NetworkFirst, StaleWhileRevalidate, CacheFirst } from "workbox-strategies";

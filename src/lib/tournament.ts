@@ -23,14 +23,7 @@ export const PLAYER_COLORS = [
 
 export const MEDALS = ["🥇", "🥈", "🥉"];
 
-export const DEFAULT_PLAYERS = [
-  "Fabio",
-  "Matteo",
-  "Christian",
-  "Cristina",
-  "Daniele",
-  "Adriano",
-];
+export const DEFAULT_PLAYERS = ["Fabio", "Matteo", "Christian", "Cristina", "Daniele", "Adriano"];
 
 export type ServerSide = "p1" | "p2";
 

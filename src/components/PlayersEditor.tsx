@@ -1,10 +1,5 @@
 import { useMemo } from "react";
-import {
-  MAX_PLAYERS,
-  MIN_PLAYERS,
-  PLAYER_COLORS,
-  validatePlayers,
-} from "@/lib/tournament";
+import { MAX_PLAYERS, MIN_PLAYERS, PLAYER_COLORS, validatePlayers } from "@/lib/tournament";
 
 type Props = {
   players: string[];

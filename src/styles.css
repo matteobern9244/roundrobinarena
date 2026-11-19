@@ -51,8 +51,8 @@
   --color-surface-3: var(--surface-3);
 
   --font-mono:
-    "JetBrains Mono", "Fira Code", "Courier New", ui-monospace, SFMono-Regular,
-    Menlo, Monaco, Consolas, monospace;
+    "JetBrains Mono", "Fira Code", "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -105,26 +105,16 @@
   --neon-magenta: oklch(0.55 0.25 350);
 
   /* Gradienti riutilizzabili */
-  --gradient-progress: linear-gradient(
-    90deg,
-    var(--neon-cyan),
-    var(--neon-lime)
-  );
-  --gradient-header: linear-gradient(
-    180deg,
-    var(--surface-1),
-    var(--background)
-  );
+  --gradient-progress: linear-gradient(90deg, var(--neon-cyan), var(--neon-lime));
+  --gradient-header: linear-gradient(180deg, var(--surface-1), var(--background));
 
   /* Glow ridotti su light per non lavare gli accenti */
   --glow-cyan: 0 0 16px color-mix(in oklab, var(--neon-cyan) 28%, transparent);
   --glow-gold: 0 0 18px color-mix(in oklab, var(--neon-gold) 32%, transparent);
 
   /* Intensità glow (consumata da .neon-title e .neon-logo) */
-  --neon-title-shadow:
-    0 0 10px color-mix(in oklab, var(--neon-cyan) 35%, transparent);
-  --neon-logo-shadow:
-    0 0 10px color-mix(in oklab, var(--neon-cyan) 30%, transparent);
+  --neon-title-shadow: 0 0 10px color-mix(in oklab, var(--neon-cyan) 35%, transparent);
+  --neon-logo-shadow: 0 0 10px color-mix(in oklab, var(--neon-cyan) 30%, transparent);
 
   /* Mix accent per stati "completato" / "top" — più alto su light */
   --done-mix: 12%;
@@ -183,8 +173,7 @@
   --neon-title-shadow:
     0 0 20px color-mix(in oklab, var(--neon-cyan) 80%, transparent),
     0 0 40px color-mix(in oklab, var(--neon-cyan) 30%, transparent);
-  --neon-logo-shadow:
-    0 0 14px color-mix(in oklab, var(--neon-cyan) 60%, transparent);
+  --neon-logo-shadow: 0 0 14px color-mix(in oklab, var(--neon-cyan) 60%, transparent);
 
   --done-mix: 4%;
   --top-mix: 12%;
@@ -390,7 +379,9 @@
     font-size: 16px;
     line-height: 1;
     filter: drop-shadow(0 0 6px color-mix(in oklab, var(--neon-cyan) 70%, transparent));
-    transition: transform 0.2s ease, opacity 0.2s ease;
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease;
     flex-shrink: 0;
   }
 
@@ -455,8 +446,7 @@
 
   .score-input:focus {
     border-color: var(--color-neon-cyan);
-    box-shadow: 0 0 12px
-      color-mix(in oklab, var(--neon-cyan) 30%, transparent);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--neon-cyan) 30%, transparent);
   }
 
   .score-input.is-loser {
@@ -496,12 +486,10 @@
   @keyframes champion-pulse {
     0%,
     100% {
-      box-shadow: 0 0 16px
-        color-mix(in oklab, var(--neon-gold) 25%, transparent);
+      box-shadow: 0 0 16px color-mix(in oklab, var(--neon-gold) 25%, transparent);
     }
     50% {
-      box-shadow: 0 0 32px
-        color-mix(in oklab, var(--neon-gold) 55%, transparent);
+      box-shadow: 0 0 32px color-mix(in oklab, var(--neon-gold) 55%, transparent);
     }
   }
 
@@ -521,8 +509,7 @@
     font-weight: 800;
     letter-spacing: 2px;
     text-transform: uppercase;
-    box-shadow: 0 4px 20px
-      color-mix(in oklab, var(--neon-lime) 30%, transparent);
+    box-shadow: 0 4px 20px color-mix(in oklab, var(--neon-lime) 30%, transparent);
     animation: toast-in 0.25s ease-out;
     pointer-events: none;
   }

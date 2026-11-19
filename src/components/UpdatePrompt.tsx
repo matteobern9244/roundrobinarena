@@ -36,9 +36,7 @@ export function UpdatePrompt() {
         boxShadow: "var(--glow-cyan)",
       }}
     >
-      <span className="flex-1 text-[10px] tracking-[0.25em]">
-        ⚡ Nuova versione disponibile
-      </span>
+      <span className="flex-1 text-[10px] tracking-[0.25em]">⚡ Nuova versione disponibile</span>
       <button
         type="button"
         onClick={() => {

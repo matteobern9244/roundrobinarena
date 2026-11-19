@@ -1,27 +1,27 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function subscribeOnline(onChange: () => void) {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
 
 /**
  * Mostra un badge "OFFLINE" quando il browser non ha connessione.
- * Usa stile arcade neon coerente col design system.
+ * Usa stile arcade neon coerente col design system. Sul server e durante
+ * l'idratazione si considera online, quindi il badge non viene renderizzato.
  */
 export function OfflineBadge() {
-  const [online, setOnline] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const online = useSyncExternalStore(
+    subscribeOnline,
+    () => navigator.onLine,
+    () => true,
+  );
 
-  useEffect(() => {
-    setMounted(true);
-    setOnline(typeof navigator !== "undefined" ? navigator.onLine : true);
-    const on = () => setOnline(true);
-    const off = () => setOnline(false);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
-    };
-  }, []);
-
-  if (!mounted || online) return null;
+  if (online) return null;
 
   return (
     <div

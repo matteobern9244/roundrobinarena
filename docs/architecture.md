@@ -7,16 +7,19 @@ Panoramica tecnica di **Round Robin Arena**.
 | Layer | Tecnologia |
 |-------|------------|
 | Framework | TanStack Start v1 (React 19) |
-| Build | Vite 7 |
+| Build | Vite 8 + Nitro 3 (`nitro/vite`) |
 | Lingua | TypeScript (strict) |
 | Styling | Tailwind CSS v4 (via `@import` in `src/styles.css`) |
-| UI primitives | shadcn/ui + Radix UI |
+| Icone | lucide-react |
 | Routing | TanStack Router (file-based) |
 | Persistenza | `localStorage` (no backend) |
-| Deploy target | Cloudflare Workers (`wrangler.jsonc`) |
-| Package manager | Bun |
+| Deploy target | Vercel (SSR come Vercel Function via preset Nitro `vercel`) |
+| Runtime | Node.js 26 LTS (`.nvmrc`, `engines`) |
+| Package manager | npm (`package-lock.json`) |
+| Test | Vitest (`src/lib/tournament.test.ts`) |
 
-Nessun backend, nessun database, nessuna autenticazione. Lovable Cloud non è abilitato.
+Nessun backend, nessun database, nessuna autenticazione. Il rendering lato server serve solo a
+produrre l'HTML iniziale: lo stato vive interamente nel browser.
 
 ## Routing
 
@@ -101,27 +104,45 @@ Toggle UI: `src/components/ThemeToggle.tsx`. Presente sia in `/` (setup) sia in 
 
 ### Service Worker (vite-plugin-pwa + Workbox)
 
-Configurato in `vite.config.ts` con `VitePWA`:
+SW custom in `src/sw.ts` (strategia `injectManifest`), configurato in `vite.config.ts`:
 
 | Risorsa | Strategia | Cache |
 |---------|-----------|-------|
-| Navigazioni HTML | `NetworkFirst` (timeout 3s) | `html` |
-| JS / CSS / Worker | `StaleWhileRevalidate` | `assets` |
-| Immagini / Font | `CacheFirst` (30 giorni) | `images-fonts` |
+| Asset della build (JS, CSS, icone, manifest) | precache Workbox | `workbox-precache-*` |
+| Navigazioni HTML (`/`, `/tournament`) | `NetworkFirst` (timeout 3s) + prefetch delle shell all'install | `html-pages-v3` |
+| Script / style / worker non in precache | `CacheFirst` (60 giorni) | `assets-v3` |
+| Immagini / font | `CacheFirst` (60 giorni) | `images-fonts-v3` |
 
-- `navigateFallback: /index.html` → SPA offline-friendly anche su deep link.
-- `navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//]`.
+- L'app è SSR: non esiste un `/index.html` statico, quindi le shell HTML delle due rotte vengono
+  scaricate e messe in cache dal SW; offline una navigazione ricade sulla shell in cache.
 - `registerType: "autoUpdate"` + prompt manuale "Nuova versione disponibile".
-- `manifest: false` → si usa quello in `public/`.
+- `manifest: false` → si usa `public/manifest.webmanifest`.
+
+#### Integrazione con Nitro (vincoli in `vite.config.ts`)
+
+1. Nitro scrive la build client nella cartella pubblica del preset (`.vercel/output/static` su
+   Vercel, `.output/public` in locale). Il plugin PWA riceve questa cartella tramite
+   `integration.beforeBuildServiceWorker`, altrimenti scriverebbe `sw.js` in `dist/` con un
+   precache vuoto.
+2. Il plugin di build PWA è limitato all'ambiente `client`: `sw.js` viene generato una sola
+   volta, prima che Nitro registri dimensioni ed etag degli asset pubblici (altrimenti il server
+   Node lo serve troncato).
+3. `environments.client.build.copyPublicDir: true` porta `public/` nella build client, così icone
+   e manifest entrano nel precache.
+
+Dopo ogni modifica a build, routing o SW verificare: `sw.js` presente nella cartella servita,
+precache con 13 voci circa (asset + icone + manifest), `/sw.js` risponde 200, reload offline ok.
 
 ### Registrazione condizionale
 
 `src/pwa-register.ts` (`initPWA`) registra il SW **solo se**:
 
-- non siamo in iframe (editor Lovable);
-- l'hostname non è `id-preview--*` né `lovableproject.com`.
+- siamo in build di produzione;
+- non siamo in un iframe;
+- l'URL non contiene `?sw=off` (kill switch).
 
-In quei casi fa anche `unregister()` di eventuali SW residui per evitare cache stantia nella preview.
+Il SW è attivo sia in produzione sia nelle preview Vercel, che servono proprio a verificare
+l'offline prima del rilascio. Nei contesti esclusi fa `unregister()` di eventuali SW residui.
 
 ### Componenti UI
 
@@ -132,19 +153,22 @@ Entrambi montati in `RootComponent` (`src/routes/__root.tsx`).
 
 ### Test
 
-Il SW è **disabilitato** in dev e nel preview Lovable. Per verificare offline:
+Il SW è **disabilitato** in `npm run dev`. Per verificare offline:
 
-1. Aprire il published URL (`https://roundrobinarena.lovable.app`).
-2. DevTools → Application → Service Workers (verifica registrazione).
-3. DevTools → Network → "Offline", ricarica.
+1. In locale: `npm run build` e `node .output/server/index.mjs` (porta 3000), oppure su una
+   preview Vercel.
+2. DevTools → Application → Service Workers (verifica registrazione) e Cache Storage.
+3. DevTools → Network → "Offline" (o server spento in locale), ricarica `/` e `/tournament`.
 
 
 ## Build & deploy
 
 ```bash
-bun run build
+nvm use
+npm ci
+npm run build                      # preset Nitro node-server → .output/
+NITRO_PRESET=vercel npm run build  # riproduce l'output Vercel → .vercel/output/
 ```
 
-Output target: Cloudflare Workers (configurato in `wrangler.jsonc` + `@cloudflare/vite-plugin`).
-
-Il progetto è pubblicato automaticamente da Lovable su `https://roundrobinarena.lovable.app`.
+Su Vercel il preset `vercel` viene scelto in automatico. Progetto Vercel collegato al repository
+GitHub: ogni push su `main` va in produzione, gli altri branch generano una preview.

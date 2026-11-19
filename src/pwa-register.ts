@@ -3,12 +3,12 @@
  *
  * Skipped automatically quando:
  *  - non siamo in build di produzione
- *  - siamo dentro un iframe (preview dell'editor Lovable)
- *  - siamo su un host di preview/editor Lovable
+ *  - siamo dentro un iframe (pagina incorporata altrove)
  *  - l'URL contiene ?sw=off (kill switch)
  *
- * Nei contesti bloccati i Service Worker esistenti vengono deregistrati per
- * evitare che cache stantie inquinino la preview.
+ * In produzione e nelle preview Vercel il SW e' attivo: le preview servono
+ * proprio a verificare l'offline prima del rilascio. Nei contesti bloccati i
+ * Service Worker esistenti vengono deregistrati per evitare cache stantie.
  */
 
 let initialized = false;
@@ -17,19 +17,6 @@ export type PwaCallbacks = {
   onNeedRefresh?: () => void;
   onOfflineReady?: () => void;
 };
-
-function isPreviewHost(host: string): boolean {
-  return (
-    host.startsWith("id-preview--") ||
-    host.startsWith("preview--") ||
-    host === "lovableproject.com" ||
-    host.endsWith(".lovableproject.com") ||
-    host === "lovableproject-dev.com" ||
-    host.endsWith(".lovableproject-dev.com") ||
-    host === "beta.lovable.dev" ||
-    host.endsWith(".beta.lovable.dev")
-  );
-}
 
 async function unregisterAll(): Promise<void> {
   if (!("serviceWorker" in navigator)) return;
@@ -49,17 +36,16 @@ export async function initPWA(
   if (initialized) return null;
   initialized = true;
 
-  let inIframe = false;
+  let inIframe: boolean;
   try {
     inIframe = window.self !== window.top;
   } catch {
     inIframe = true;
   }
 
-  const host = window.location.hostname;
   const killSwitch = new URLSearchParams(window.location.search).get("sw") === "off";
 
-  if (!import.meta.env.PROD || inIframe || isPreviewHost(host) || killSwitch) {
+  if (!import.meta.env.PROD || inIframe || killSwitch) {
     await unregisterAll();
     return null;
   }

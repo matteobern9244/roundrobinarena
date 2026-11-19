@@ -32,11 +32,7 @@ export function ThemeToggle({ className, variant = "outlined" }: Props) {
       )}
     >
       {/* Sun visibile in dark (per "passare a light"), Moon visibile in light */}
-      {isDark ? (
-        <Sun className="h-4 w-4" aria-hidden />
-      ) : (
-        <Moon className="h-4 w-4" aria-hidden />
-      )}
+      {isDark ? <Sun className="h-4 w-4" aria-hidden /> : <Moon className="h-4 w-4" aria-hidden />}
     </button>
   );
 }

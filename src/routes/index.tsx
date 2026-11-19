@@ -4,12 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PlayersEditor } from "@/components/PlayersEditor";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTournament } from "@/hooks/useTournament";
-import {
-  DEFAULT_PLAYERS,
-  generateRounds,
-  validatePlayers,
-  WIN_SCORE,
-} from "@/lib/tournament";
+import { DEFAULT_PLAYERS, generateRounds, validatePlayers, WIN_SCORE } from "@/lib/tournament";
 
 export const Route = createFileRoute("/")({
   component: SetupPage,
@@ -52,7 +47,10 @@ function SetupPage() {
   return (
     <main className="relative mx-auto flex min-h-screen max-w-xl flex-col gap-5 px-3 py-6 safe-x safe-bottom sm:gap-6 sm:px-4 sm:py-8">
       <div className="safe-top" />
-      <div className="absolute right-3 top-3 sm:right-4 sm:top-4" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div
+        className="absolute right-3 top-3 sm:right-4 sm:top-4"
+        style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
         <ThemeToggle />
       </div>
       <header className="flex flex-col items-center gap-3 text-center">
@@ -95,11 +93,7 @@ function SetupPage() {
         onClick={handleStart}
         disabled={!!error}
         className="w-full rounded-2xl border-2 border-neon-cyan bg-neon-cyan/10 py-4 text-sm font-black uppercase tracking-[0.3em] text-neon-cyan transition-all hover:bg-neon-cyan/20 disabled:cursor-not-allowed disabled:border-border disabled:bg-transparent disabled:text-muted-foreground"
-        style={
-          !error
-            ? { boxShadow: "var(--glow-cyan)" }
-            : undefined
-        }
+        style={!error ? { boxShadow: "var(--glow-cyan)" } : undefined}
       >
         ⚡ Inizia Torneo
       </button>

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useHydrated } from "@/hooks/useHydrated";
 
 export type Theme = "light" | "dark";
 /** "system" = nessuna preferenza salvata, segue prefers-color-scheme. */
@@ -21,14 +22,21 @@ function readMode(): ThemeMode {
   return "system";
 }
 
-function systemPrefersDark(): boolean {
-  if (!isBrowser) return true; // dark by default su SSR
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+function subscribeSystemTheme(onChange: () => void) {
+  const mql = window.matchMedia(DARK_QUERY);
+  mql.addEventListener("change", onChange);
+  return () => mql.removeEventListener("change", onChange);
 }
 
-function resolveTheme(mode: ThemeMode): Theme {
+function systemPrefersDark(): boolean {
+  return window.matchMedia(DARK_QUERY).matches;
+}
+
+function resolveTheme(mode: ThemeMode, systemDark: boolean): Theme {
   if (mode === "light" || mode === "dark") return mode;
-  return systemPrefersDark() ? "dark" : "light";
+  return systemDark ? "dark" : "light";
 }
 
 function applyTheme(theme: Theme) {
@@ -36,9 +44,7 @@ function applyTheme(theme: Theme) {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
   // Aggiorna meta theme-color (status bar PWA / Chrome mobile)
-  const meta = document.querySelector<HTMLMetaElement>(
-    'meta[name="theme-color"]:not([media])',
-  );
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]:not([media])');
   if (meta) {
     meta.content = theme === "dark" ? META_THEME_COLOR_DARK : META_THEME_COLOR_LIGHT;
   }
@@ -63,40 +69,24 @@ export type UseThemeResult = {
  */
 export function useTheme(): UseThemeResult {
   // SSR-safe: parto sempre dai default per evitare hydration mismatch.
-  // I valori reali vengono sincronizzati nel primo useEffect lato client.
+  // La preferenza salvata viene letta subito dopo l'idratazione.
   const [mode, setModeState] = useState<ThemeMode>("system");
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [synced, setSynced] = useState(false);
+  const hydrated = useHydrated();
+  if (hydrated && !synced) {
+    setSynced(true);
+    setModeState(readMode());
+  }
 
-  // Sync iniziale lato client: legge localStorage + sistema dopo l'idratazione.
-  useEffect(() => {
-    if (!isBrowser) return;
-    const m = readMode();
-    setModeState(m);
-    const next = resolveTheme(m);
-    setTheme(next);
-    applyTheme(next);
-  }, []);
+  // Segue prefers-color-scheme in tempo reale; sul server vale "dark".
+  const systemDark = useSyncExternalStore(subscribeSystemTheme, systemPrefersDark, () => true);
+  const theme = resolveTheme(mode, systemDark);
 
-  // Applica il tema risolto su DOM ad ogni cambio di mode (o di sistema).
+  // Applica il tema su DOM solo dopo aver letto la preferenza reale: prima lo
+  // script inline in __root.tsx ha già impostato la classe giusta.
   useEffect(() => {
-    if (!isBrowser) return;
-    const next = resolveTheme(mode);
-    setTheme(next);
-    applyTheme(next);
-  }, [mode]);
-
-  // Se mode === "system", segui il cambio di prefers-color-scheme in tempo reale.
-  useEffect(() => {
-    if (!isBrowser || mode !== "system") return;
-    const mql = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => {
-      const next: Theme = mql.matches ? "dark" : "light";
-      setTheme(next);
-      applyTheme(next);
-    };
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, [mode]);
+    if (synced) applyTheme(theme);
+  }, [synced, theme]);
 
   const setMode = useCallback((m: ThemeMode) => {
     setModeState(m);

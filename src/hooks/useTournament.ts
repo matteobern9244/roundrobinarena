@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   buildFreshMatches,
   DEFAULT_PLAYERS,
@@ -7,6 +7,7 @@ import {
   type Match,
   type TournamentState,
 } from "@/lib/tournament";
+import { useHydrated } from "@/hooks/useHydrated";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -50,11 +51,15 @@ export function useTournament(): UseTournament {
   const [state, setState] = useState<TournamentState | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const hydrated = useHydrated();
 
-  useEffect(() => {
-    setState(readStorage());
+  // Dopo l'idratazione carica una sola volta il torneo salvato. È un
+  // aggiustamento di stato durante il render (pattern raccomandato da React),
+  // non un effetto: niente render a cascata.
+  if (hydrated && !loaded) {
     setLoaded(true);
-  }, []);
+    setState(readStorage());
+  }
 
   const persist = useCallback((next: TournamentState | null) => {
     writeStorage(next);

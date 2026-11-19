@@ -4,7 +4,7 @@ Web app per gestire un torneo di ping pong **all vs all** (round-robin) da 3 a 8
 
 > Tutto gira nel browser. Nessun account, nessun backend: i dati restano in `localStorage` sul tuo dispositivo.
 
-**Live**: https://roundrobinarena.lovable.app
+**Live**: https://roundrobinarena.vercel.app
 
 ---
 
@@ -24,21 +24,21 @@ Web app per gestire un torneo di ping pong **all vs all** (round-robin) da 3 a 8
 - **Reset partite** (azzera i punteggi mantenendo la rosa) o **chiusura torneo** (torna al setup).
 - **Persistenza automatica** in `localStorage` (`pp-tournament-v1`) con flash "Salvato".
 - **Tema dual**: dark arcade (neon) + light arcade (colori vividi mantenuti). Default = sistema operativo. Toggle disponibile sia nel setup sia nell'header del torneo.
-- **PWA offline-first**: dopo il primo caricamento online l'app funziona **completamente offline** grazie a un Service Worker (Workbox via `vite-plugin-pwa`). Manifest, icone, meta `apple-mobile-web-app`, viewport con safe-area per iPhone. Badge "OFFLINE" in header e toast "Nuova versione disponibile" quando esce un aggiornamento. Il SW è disattivato dentro l'editor Lovable per evitare cache stantia: testabile sul published URL.
+- **PWA offline-first**: dopo il primo caricamento online l'app funziona **completamente offline** grazie a un Service Worker (Workbox via `vite-plugin-pwa`). Manifest, icone, meta `apple-mobile-web-app`, viewport con safe-area per iPhone. Badge "OFFLINE" in header e toast "Nuova versione disponibile" quando esce un aggiornamento. Il SW è attivo in produzione e nelle preview Vercel; si disattiva con `?sw=off`.
 - **Mobile-first**: layout pensato per 360–430px, scala fino a desktop senza modifiche.
 
 ---
 
 ## 🛠️ Stack tecnologico
 
-- **TanStack Start v1** (React 19 + Vite 7) con file-based routing.
-- **TypeScript strict**.
+- **TanStack Start v1** (React 19 + Vite 8) con file-based routing.
+- **TypeScript strict** (6.0).
 - **Tailwind CSS v4** via `@import` in `src/styles.css` con design tokens `oklch`.
-- **shadcn/ui** + **Radix UI** primitives.
-- **Cloudflare Workers** come target di deploy (vedi `wrangler.jsonc`).
-- **Bun** come package manager.
+- **Nitro 3** per la build server; deploy su **Vercel**.
+- **Node.js 26 LTS** (`.nvmrc`) e **npm** come package manager.
+- **Vitest** per i test della logica torneo.
 
-Nessun backend richiesto. Lovable Cloud non è abilitato: tutto avviene client-side.
+Nessun backend richiesto: tutto avviene client-side, l'SSR produce solo l'HTML iniziale.
 
 ---
 
@@ -53,12 +53,17 @@ src/
 ├── components/
 │   ├── PlayersEditor.tsx   # Editor rosa (3-8 giocatori, validazione)
 │   ├── ThemeToggle.tsx     # Toggle tema sistema/dark/light
-│   └── ui/                 # Componenti shadcn
+│   ├── OfflineBadge.tsx    # Badge "OFFLINE"
+│   └── UpdatePrompt.tsx    # Toast "Nuova versione disponibile"
 ├── hooks/
 │   ├── useTournament.ts    # Stato torneo + persistenza localStorage
-│   └── useTheme.ts         # Tema con preferenza OS, hydration-safe
+│   ├── useTheme.ts         # Tema con preferenza OS, hydration-safe
+│   └── useHydrated.ts      # true solo dopo l'idratazione
 ├── lib/
-│   └── tournament.ts       # Domain: tipi, generateRounds, computeStandings
+│   ├── tournament.ts       # Domain: tipi, generateRounds, computeStandings
+│   └── tournament.test.ts  # Test Vitest della logica torneo
+├── sw.ts                   # Service Worker custom (Workbox)
+├── pwa-register.ts         # Registrazione condizionale del SW
 └── styles.css              # Tokens design system, neon arcade
 ```
 
@@ -67,11 +72,14 @@ src/
 ## 🚀 Sviluppo locale
 
 ```bash
-bun install
-bun dev          # http://localhost:5173
-bun run build    # build di produzione
-bun run lint
-bun run format
+nvm use              # Node 26 da .nvmrc
+npm ci
+npm run dev          # http://localhost:5173
+npm run build        # build di produzione (.output/)
+npm run lint
+npm run typecheck
+npm test
+npm run format
 ```
 
 ---
@@ -105,10 +113,11 @@ La preferenza è salvata in `localStorage` come `pp-theme`. Uno script blocking 
 - [`CHANGELOG.md`](./CHANGELOG.md) — storico delle modifiche.
 - [`docs/architecture.md`](./docs/architecture.md) — panoramica tecnica (routing, stato, persistenza, temi).
 - [`docs/tournament-logic.md`](./docs/tournament-logic.md) — algoritmo Berger e classifica.
-- [`.lovable/plan.md`](./.lovable/plan.md) — piano di lavoro corrente.
+- [`docs/piano-migrazione-vercel.md`](./docs/piano-migrazione-vercel.md) — migrazione da Lovable a Vercel e tech refresh.
+- [`CLAUDE.md`](./CLAUDE.md) — regole di lavoro per Claude Code.
 
 ---
 
 ## 📄 Licenza
 
-Progetto privato generato con [Lovable](https://lovable.dev).
+Progetto privato, nato con [Lovable](https://lovable.dev) e ora gestito direttamente su Vercel.
