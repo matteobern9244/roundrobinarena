@@ -8,8 +8,8 @@ iniziale.
 
 - TanStack Start 1.x (React 19, TanStack Router file-based), Vite 8, Nitro 3, Tailwind CSS 4.
 - PWA con `vite-plugin-pwa` (strategia `injectManifest`, SW custom in `src/sw.ts`).
-- Deploy su **Vercel** (preset Nitro `vercel`, scelto in automatico). Produzione da `main`,
-  preview dagli altri branch.
+- Deploy su **Vercel** (preset Nitro `vercel`, scelto in automatico). Si pubblica solo da `main`:
+  `vercel.json` (`git.deploymentEnabled`) spegne i deploy degli altri branch.
 - Test con Vitest; lint con ESLint 10 + Prettier.
 
 ## Ambiente
@@ -47,7 +47,7 @@ node .output/server/index.mjs      # prova la build di produzione su http://loca
 
 - **PWA:** dopo modifiche a build, routing, `vite.config.ts` o SW verificare che `sw.js` sia
   nella cartella servita con il precache completo, che `/sw.js` risponda 200 e che il reload
-  offline di `/` e `/tournament` funzioni (in locale o su preview Vercel).
+  offline di `/` e `/tournament` funzioni (in locale, con la build di produzione).
 - **React:** niente `setState` sincrono dentro `useEffect` (regola di react-hooks 7); per API
   browser usare `useSyncExternalStore` o `useHydrated`.
 - **Versioni:** dipendenze all'ultima versione compatibile. Eccezioni dichiarate: TypeScript resta

@@ -7,6 +7,7 @@ Il formato segue [Keep a Changelog](https://keepachangelog.com/it/1.1.0/) e la v
 ## [Unreleased]
 
 ### Changed
+- Deploy Vercel solo da `main`: `vercel.json` (`git.deploymentEnabled`) spegne i deploy di `develop` e degli altri branch.
 - **Migrazione da Lovable/Cloudflare Workers a Vercel**: `vite.config.ts` esplicito (TanStack Start + Nitro 3 + React + Tailwind + PWA) al posto di `@lovable.dev/vite-tanstack-config`; rimossi `wrangler.jsonc` e `@cloudflare/vite-plugin`. Deploy via preset Nitro `vercel`.
 - **Node.js 26 LTS** (`.nvmrc`, `engines: 26.x`) e **npm** come unico package manager (rimossi `bun.lockb` e `bunfig.toml`; `package-lock.json` rigenerato).
 - **Tech refresh** di tutte le dipendenze: Vite 8, @vitejs/plugin-react 6, TanStack Start/Router ultime 1.x, Nitro 3.0.261103-rc (versione esatta), Tailwind 4.3, vite-plugin-pwa 2 (+ `workbox-build`), React 19.3, lucide-react 1.x, ESLint 10, typescript-eslint 8.73, eslint-plugin-react-hooks 7, TypeScript 6.0 (la 7 non è ancora supportata da typescript-eslint), @types/node 26.

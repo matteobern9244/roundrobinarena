@@ -143,8 +143,8 @@ precache con 13 voci circa (asset + icone + manifest), `/sw.js` risponde 200, re
 - non siamo in un iframe;
 - l'URL non contiene `?sw=off` (kill switch).
 
-Il SW è attivo sia in produzione sia nelle preview Vercel, che servono proprio a verificare
-l'offline prima del rilascio. Nei contesti esclusi fa `unregister()` di eventuali SW residui.
+Il SW è attivo in produzione. Gli altri branch non pubblicano, quindi l'offline si verifica
+prima del rilascio con la build locale. Nei contesti esclusi fa `unregister()` di eventuali SW residui.
 
 ### Componenti UI
 
@@ -157,8 +157,7 @@ Entrambi montati in `RootComponent` (`src/components/RootLayout.tsx`).
 
 Il SW è **disabilitato** in `npm run dev`. Per verificare offline:
 
-1. In locale: `npm run build` e `node .output/server/index.mjs` (porta 3000), oppure su una
-   preview Vercel.
+1. In locale: `npm run build` e `node .output/server/index.mjs` (porta 3000).
 2. DevTools → Application → Service Workers (verifica registrazione) e Cache Storage.
 3. DevTools → Network → "Offline" (o server spento in locale), ricarica `/` e `/tournament`.
 
@@ -173,4 +172,5 @@ NITRO_PRESET=vercel npm run build  # riproduce l'output Vercel → .vercel/outpu
 ```
 
 Su Vercel il preset `vercel` viene scelto in automatico. Progetto Vercel collegato al repository
-GitHub: ogni push su `main` va in produzione, gli altri branch generano una preview.
+GitHub: ogni push su `main` va in produzione; gli altri branch non generano deploy
+(`git.deploymentEnabled` in `vercel.json`).
